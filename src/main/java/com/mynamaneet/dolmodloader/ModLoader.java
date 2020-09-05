@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -15,8 +14,6 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -190,8 +187,8 @@ public final class ModLoader {
             //Place text
             if(targetIndex != -1){
                 targetIndex++;
-                for (String newString : insertStrings) {
-                    lines.add(targetIndex, newString);
+                for (int i = insertStrings.size()-1; i >= 0; i--) {
+                    lines.add(targetIndex, insertStrings.get(i));
                 }
 
                 //Rewrite file
