@@ -187,8 +187,8 @@ public final class ModLoader {
             //Place text
             if(targetIndex != -1){
                 targetIndex++;
-                for (String newString : insertStrings) {
-                    lines.add(targetIndex, newString);
+                for (int i = insertStrings.size()-1; i >= 0; i--) {
+                    lines.add(targetIndex, insertStrings.get(i));
                 }
 
                 //Rewrite file
