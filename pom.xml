@@ -46,7 +46,9 @@
       <version>3.3.9</version>
     </dependency>
   </dependencies>
+  <packaging>jar</packaging>
   <build>
+    <finalName>DoLModLoader</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
