@@ -2,7 +2,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mynamaneet.dolmodloader</groupId>
   <artifactId>dolmodloader</artifactId>
+<<<<<<< HEAD
   <version>1.0.14</version>
+=======
+  <version>0.1.13</version>
+>>>>>>> 56d3e21e4d47b0d08fe18beee2aeeb083c5efde7
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
