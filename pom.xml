@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mynamaneet.dolmodloader</groupId>
   <artifactId>dolmodloader</artifactId>
-  <version>1.0.13</version>
+  <version>1.0.14</version>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -46,7 +46,9 @@
       <version>3.3.9</version>
     </dependency>
   </dependencies>
+  <packaging>jar</packaging>
   <build>
+    <finalName>DoLModLoader</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

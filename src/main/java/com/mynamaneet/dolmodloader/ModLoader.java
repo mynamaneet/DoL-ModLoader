@@ -1,10 +1,10 @@
 package com.mynamaneet.dolmodloader;
 
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -26,6 +27,7 @@ import com.mynamaneet.dolmodloader.exceptions.InvalidLocationException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidPassageException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidSubfolderException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidTweeFileException;
+import com.mynamaneet.dolmodloader.exceptions.ProcessWarningException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -317,24 +319,39 @@ public final class ModLoader {
         //Load backup into dol-files
         File backupDir = new File(getRunningPath()+"\\backup");
         File dolFilesLocation = new File(getRunningPath()+"\\dol-files");
+        File images = new File(new File(getRunningPath()).getParentFile().toString() + "\\img");
+        File debugLog = new File(new File(getRunningPath()).getParentFile().toString() + "\\debug-log.log");
         
-        LOGGER.info("Loading dol-files...");
-
+        LOGGER.info("Deleting old dol-files...");
         try{
             FileUtils.deleteDirectory(dolFilesLocation);
         } catch(IOException ex){
-            LOGGER.log(Level.SEVERE, "Error occured while deleted dol-files.", ex);
+            LOGGER.log(Level.SEVERE, "Error occured while deleting old dol-files.", ex);
         } catch(IllegalArgumentException ex){
             LOGGER.log(Level.WARNING, "Couldn't delete old dol-files, directory doesn't exist.", ex);
         }
+        LOGGER.info("Deleted old dol-files.");
 
+        if(images.isDirectory()){
+            LOGGER.info("Deleting old imgs...");
+            try{
+                FileUtils.deleteDirectory(images);
+            } catch(IOException ex){
+                LOGGER.log(Level.SEVERE, "Error occured while deleting old img", ex);
+            } catch(IllegalArgumentException ex){
+                LOGGER.log(Level.WARNING, "Couldn't delete old img, directory doesn't exist.", ex);
+            }
+            LOGGER.info("Deleted old imgs.");
+        }        
+
+        LOGGER.info("Loading dol-files...");
         try{
             FileUtils.copyDirectory(backupDir, dolFilesLocation);
         } catch(IOException ex){
             LOGGER.log(Level.SEVERE, "Error occured while loading backup DOL files.", ex);
         }
-
         LOGGER.info("Loaded dol-files.");
+
 
         //Setup DolSubfolders
         LOGGER.info("Setting up DOL Subfolders...");
@@ -356,7 +373,6 @@ public final class ModLoader {
         setupDolPassages();
         LOGGER.info("Finished setting up DOL Passages.");
 
-
         //Load Mods
         LOGGER.info("Loading mods...");
         for (Mod mod : mods) {
@@ -364,5 +380,51 @@ public final class ModLoader {
             mod.modApp();
         }
         LOGGER.info("Loaded mods.");
+
+        //Load Images
+        LOGGER.info("Loading imgs...");
+        try{
+            FileUtils.copyDirectory(new File(backupDir.toString() + "\\img"), images);
+        }catch(IOException ex){
+            LOGGER.log(Level.SEVERE, "Error occured while loading backup img files.", ex);
+        }
+        LOGGER.info("Loaded imgs.");
+
+
+        //Create HTML
+        LOGGER.info("Creating HTML...");
+        try{
+            String curRunningPath = getRunningPath() + "\\dol-files";
+            String batchFile = getRunningPath() + "\\dol-files\\compile.bat";
+            Process compile = Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit"); //Open compile.bat in CMD
+            synchronized(compile){
+                int failSafe = 0;
+                while(compile.isAlive() && failSafe <= 10){
+                    compile.wait(1000);
+                    failSafe++;
+                }
+            }
+            if(compile.exitValue() != 0){
+                throw new ProcessWarningException("An error occured while compiling HTML.", new Throwable());
+            }
+            String dolVersion = "NOVERSION";
+            try(BufferedReader reader = new BufferedReader(new FileReader(curRunningPath+"\\DOL VERSION.txt"))){
+                dolVersion = reader.readLine();
+            } catch(IOException ex){
+                LOGGER.log(Level.SEVERE, "Error occured while getting DOL version.", ex);
+            }
+            File html = new File(curRunningPath + "\\Degrees of Lewdity VERSION.html");
+            File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity " + dolVersion + " Modded.html");
+            Files.delete(htmlDestination.toPath());
+            if(!(html.renameTo(htmlDestination))){
+                throw new SecurityException("Couldn't move and rename HTML.", new Throwable());
+            }
+        } catch(IOException|ProcessWarningException|SecurityException ex){
+            LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
+        } catch(InterruptedException ex){
+            LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
+            Thread.currentThread().interrupt();
+        }
+        LOGGER.info("Created HTML.");
     }
 }
