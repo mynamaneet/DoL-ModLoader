@@ -1,0 +1,23 @@
+Updated 9/9/2020
+
+Index:
+(!) = Very Important
+(*) = Being worked on
+(?) = Unsure if it will be implemented
+(A Number) = Look at the More Info section
+
+(Not in order of importance)
+
+
+
+ModLoader:
+(!)- Make mods have to be in individual folders.
+- Make finding DolLocation, DolSubfolder, and TweeFile automated.
+
+
+
+
+
+
+Completed:
+- Add failsafe for passage finding. (0.1.15)

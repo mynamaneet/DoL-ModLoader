@@ -16,6 +16,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -209,17 +210,67 @@ public final class ModLoader {
     }
 
 
+    private static boolean writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
+            String line;
+            ArrayList<String> lines = new ArrayList<>();
 
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
 
+            bufferedReader.close();
 
-    public static void subscribeMod(Mod mod){
-        mods.add(mod);
-        LOGGER.info("Added mod "+mod.getModName());
-    }
+            //Find Target Line
+            int targetIndex = -1;
+            int targetDepth = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                String curLine = lines.get(i);
+                if(curLine.equals(targetString.get(targetDepth))){
+                    if(targetDepth == targetString.size()-1){
+                        targetIndex = i;
+                        break;
+                    }
+                    targetDepth++;
+                }
+                if(ifFailReqChecksFullLine){
+                    if(curLine.equals(failReq.get(targetDepth))){
+                        return false;
+                    }
+                }else{
+                    CharSequence sequence = failReq.get(targetDepth);
+                    if(curLine.contains(sequence)){
+                        return false;
+                    }
+                }
+            }
 
+            //Place text
+            if(targetIndex != -1){
+                targetIndex++;
+                for (int i = insertStrings.size()-1; i >= 0; i--) {
+                    lines.add(targetIndex, insertStrings.get(i));
+                }
 
-    public static void logMessage(String message){
-        LOGGER.info(message);
+                //Rewrite file
+                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+                for (String curLine : lines) {
+                    bufferedWriter.write(curLine);
+                    bufferedWriter.newLine();
+                }
+                bufferedWriter.close();
+            } else{
+                LOGGER.severe("Failed to find targetString");
+            }
+            
+            return true;
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
+        }
+        return false;
     }
 
 
@@ -265,13 +316,32 @@ public final class ModLoader {
     }
 
 
+    //Start modApp methods
+
+
+    public static void subscribeMod(Mod mod){
+        mods.add(mod);
+        LOGGER.info("Added mod "+mod.getModName());
+    }
+
+
+    public static void logMessage(String message){
+        LOGGER.info(message);
+    }
+
     public static void addPassageText(ArrayList<String> message, DolPassage passage){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
         targets.add("/*newtext*/");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add(null);
+        fail.add("::");
         
-        writeToTwee(passage.getFilePath(), targets, message);
+        writeToTwee(passage.getFilePath(), targets, message, fail, false);
     }
+
+
+    //End modApp methods
 
 
 
@@ -320,7 +390,6 @@ public final class ModLoader {
         File backupDir = new File(getRunningPath()+"\\backup");
         File dolFilesLocation = new File(getRunningPath()+"\\dol-files");
         File images = new File(new File(getRunningPath()).getParentFile().toString() + "\\img");
-        File debugLog = new File(new File(getRunningPath()).getParentFile().toString() + "\\debug-log.log");
         
         LOGGER.info("Deleting old dol-files...");
         try{
