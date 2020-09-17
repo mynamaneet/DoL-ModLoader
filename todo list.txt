@@ -2,7 +2,7 @@ Updated 9/9/2020
 
 Index:
 (!) = Very Important
-(*) = Being worked on
+(*) = Being worked on in current branch
 (?) = Unsure if it will be implemented
 (A Number) = Look at the More Info section
 
@@ -11,8 +11,12 @@ Index:
 
 
 ModLoader:
-(!)- Make mods have to be in individual folders.
+(*)- Make mods have to be in individual folders.
 - Make finding DolLocation, DolSubfolder, and TweeFile automated.
+- Add TweeFile full overwrite method.
+- Add Passage overwrite method.
+- Track TweeFiles that are changed during mod init.
+- Restrict individual mod access to it's folder.
 
 
 
