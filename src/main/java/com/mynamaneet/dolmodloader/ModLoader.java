@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.mynamaneet.dolmodloader.exceptions.InvalidLocationException;
+import com.mynamaneet.dolmodloader.exceptions.InvalidModLocationException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidPassageException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidSubfolderException;
 import com.mynamaneet.dolmodloader.exceptions.InvalidTweeFileException;
@@ -319,9 +320,24 @@ public final class ModLoader {
     //Start modApp methods
 
 
-    public static void subscribeMod(Mod mod){
-        mods.add(mod);
-        LOGGER.info("Added mod "+mod.getModName());
+    public static void subscribeMod(Mod mod) {
+        try{
+            mod.setModFolder(new File(mod.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile());
+            //Check if mod isn't in a folder.
+            if(mod.getModFolder().getAbsolutePath().equals(getRunningPath()+"\\mods")){
+                throw new InvalidModLocationException("Mod is located in the 'mods' folder. Mod must be in it's designated folder.");
+            }
+            //Check if mod isn't in a folder that has the same name as the mod
+            LOGGER.info("Mod Folder Name : "+mod.getModFolder().getName());
+            LOGGER.info("Mod Name : "+mod.getModName());
+            if(!(mod.getModFolder().getName().equals(mod.getModName()))){
+                throw new InvalidModLocationException("Mod's parent folder does not have the same name as the Mod's name.");
+            }
+            mods.add(mod);
+            LOGGER.info("Added mod "+mod.getModName()+" @ " + mod.getModFolder().toString());
+        } catch (URISyntaxException|InvalidModLocationException e){
+            LOGGER.log(Level.SEVERE, "Error while loading mod " + mod.getModName(), e);
+        }
     }
 
 
@@ -484,7 +500,9 @@ public final class ModLoader {
             }
             File html = new File(curRunningPath + "\\Degrees of Lewdity VERSION.html");
             File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity " + dolVersion + " Modded.html");
-            Files.delete(htmlDestination.toPath());
+            if(htmlDestination.exists()){
+                Files.delete(htmlDestination.toPath());
+            }
             if(!(html.renameTo(htmlDestination))){
                 throw new SecurityException("Couldn't move and rename HTML.", new Throwable());
             }
