@@ -383,7 +383,7 @@ public final class ModLoader {
 
             //Get running path
             String curRunningPath = getRunningPath()+"\\mods";
-            LOGGER.log(Level.INFO, curRunningPath);
+            LOGGER.log(Level.INFO, "Current Running Path : "+curRunningPath);
 
             if(curRunningPath.equals("FAILED")){
                 LOGGER.log(Level.SEVERE, "Closing Process");
