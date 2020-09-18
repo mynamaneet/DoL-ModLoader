@@ -16,7 +16,6 @@ ModLoader:
 (!)- Add Passage overwrite method.
 (!)- Track TweeFiles that are changed during mod init.
 (!)- Restrict individual mod access to it's folder.
-- Be able to find the .properties file for each mod by finding it in it's mod folder instead of by it's name.
 
 
 
@@ -24,5 +23,6 @@ ModLoader:
 
 
 Completed:
+- Be able to find the .properties file for each mod by finding it in it's mod folder instead of by it's name. (0.1.17)
 - Make mods have to be in individual folders. (0.1.16)
 - Add failsafe for passage finding. (0.1.15)

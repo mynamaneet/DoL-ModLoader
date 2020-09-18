@@ -62,24 +62,24 @@ public final class ModLoader {
                 //Get Mod class and run it's main method
                 if(file.isDirectory()){
                     File innerModFilesPath = new File(file.getPath());
-                    File[] innerModFiles = innerModFilesPath.listFiles(new FilenameFilter(){
-                        @Override
-                        public boolean accept(File dir, String name){
-                            return name.toLowerCase().endsWith(".jar");
-                        }
-                    });
+                    //Holds all .jar files inside the found directory
+                    File[] innerModFiles = innerModFilesPath.listFiles();
 
                     for(File innerFile : innerModFiles){
-                        URLClassLoader child = new URLClassLoader(new URL[] {innerFile.toURI().toURL()}, ModLoader.class.getClassLoader());
-                        Properties prop = new Properties();
-                        prop.load(new FileInputStream(new File(innerFile.toString()+(".properties"))));
-                        Class<?> classToLoad = Class.forName(prop.getProperty("modClass"), true, child);
-                        Method method = classToLoad.getDeclaredMethod("main");
-                        Object instance = classToLoad.getDeclaredConstructor().newInstance();
-                        method.invoke(instance);
-                        child.close();
+                        //If file is .jar inside the named directory
+                        if(FilenameUtils.getExtension(innerFile.getName()).equals("jar")){
+                            URLClassLoader child = new URLClassLoader(new URL[] {innerFile.toURI().toURL()}, ModLoader.class.getClassLoader());
+                            Properties prop = new Properties();
+                            prop.load(new FileInputStream(new File(file.toString()+"\\properties.properties")));
+                            Class<?> classToLoad = Class.forName(prop.getProperty("modClass"), true, child);
+                            Method method = classToLoad.getDeclaredMethod("main");
+                            Object instance = classToLoad.getDeclaredConstructor().newInstance();
+                            method.invoke(instance);
+                            child.close();
+                        }
                     }
                 }
+                //If file is a .jar in the Mods directory
                 else if(FilenameUtils.getExtension(file.getName()).equals("jar")){
                     URLClassLoader child = new URLClassLoader(new URL[] {file.toURI().toURL()}, ModLoader.class.getClassLoader());
                     Properties prop = new Properties();
@@ -383,7 +383,7 @@ public final class ModLoader {
 
             //Get running path
             String curRunningPath = getRunningPath()+"\\mods";
-            LOGGER.log(Level.INFO, curRunningPath);
+            LOGGER.log(Level.INFO, "Current Running Path : "+curRunningPath);
 
             if(curRunningPath.equals("FAILED")){
                 LOGGER.log(Level.SEVERE, "Closing Process");
