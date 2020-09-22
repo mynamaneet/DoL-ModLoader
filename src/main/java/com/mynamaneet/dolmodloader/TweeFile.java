@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TweeFile {
-    public TweeFile (File _filePath, String _name){
-        this.filePath = _filePath;
-        this.name = _name;
-    }
     public TweeFile (File _filePath, String _name, String _parent){
         this.filePath = _filePath;
         this.name = _name;
