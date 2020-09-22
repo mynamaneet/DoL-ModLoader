@@ -1,11 +1,6 @@
 package com.mynamaneet.dolmodloader;
 
 public class DolPassage {
-    public DolPassage(String _file, String _name, String _tweeName){
-        this.file = _file;
-        this.name = _name;
-        this.tweeName = _tweeName;
-    }
     public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory){
         this.file = _file;
         this.name = _name;
