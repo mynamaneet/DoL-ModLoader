@@ -43,7 +43,7 @@ public class DolLocation {
     public void addFile(TweeFile file){
         tweeFiles.add(file);
     }
-    public void setIsChanged(){
+    public void setHasChanged(){
         hasChanged = true;
     }
 }
