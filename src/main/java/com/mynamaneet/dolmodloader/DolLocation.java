@@ -36,8 +36,14 @@ public class DolLocation {
     public List<TweeFile> getFiles(){
         return tweeFiles;
     }
+    public boolean hasChanged(){
+        return hasChanged;
+    }
 
     public void addFile(TweeFile file){
         tweeFiles.add(file);
+    }
+    public void setIsChanged(){
+        hasChanged = true;
     }
 }
