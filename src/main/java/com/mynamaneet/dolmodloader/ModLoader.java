@@ -4,10 +4,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,7 +14,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -24,12 +21,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.mynamaneet.dolmodloader.exceptions.InvalidLocationException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidModLocationException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidPassageException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidSubfolderException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidTweeFileException;
-import com.mynamaneet.dolmodloader.exceptions.ProcessWarningException;
+import com.mynamaneet.dolmodloader.exceptions.*;
+import com.mynamaneet.dolmodloader.file_classes.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -371,6 +364,7 @@ public final class ModLoader {
         LOGGER.info(message);
     }
 
+
     public static void addPassageText(ArrayList<String> message, DolPassage passage){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
@@ -401,6 +395,11 @@ public final class ModLoader {
         } catch(InvalidTweeFileException e){
             LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
         }
+    }
+
+
+    public static void overwritePassage(){
+        //Need to implement mod file localization first.
     }
 
 

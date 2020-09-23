@@ -1,4 +1,4 @@
-package com.mynamaneet.dolmodloader;
+package com.mynamaneet.dolmodloader.file_classes;
 
 public class DolPassage {
     public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory){

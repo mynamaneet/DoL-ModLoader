@@ -1,31 +1,31 @@
-package com.mynamaneet.dolmodloader;
+package com.mynamaneet.dolmodloader.file_classes;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DolLocation {
-    public DolLocation(File _directoryPath, String _name, String _parent){
-        this.directoryPath = _directoryPath;
+public class TweeFile {
+    public TweeFile (File _filePath, String _name, String _parent){
+        this.filePath = _filePath;
         this.name = _name;
         this.parent = _parent;
     }
-    public DolLocation(File _directoryPath, String _name, String _parent, boolean _hasChanged){
-        this.directoryPath = _directoryPath;
+    public TweeFile (File _filePath, String _name, String _parent, boolean _hasChanged){
+        this.filePath = _filePath;
         this.name = _name;
         this.parent = _parent;
         this.hasChanged = _hasChanged;
     }
 
-    private File directoryPath;
+    private File filePath;
     private String name;
     private String parent = "";
-    private ArrayList<TweeFile> tweeFiles = new ArrayList<>();
+    private ArrayList<DolPassage> passages = new ArrayList<>();
     private boolean hasChanged = false;
 
 
     public File getDirectoryPath(){
-        return directoryPath;
+        return filePath;
     }
     public String getName(){
         return name;
@@ -33,15 +33,15 @@ public class DolLocation {
     public String getParent(){
         return parent;
     }
-    public List<TweeFile> getFiles(){
-        return tweeFiles;
+    public List<DolPassage> getPassages(){
+        return passages;
     }
     public boolean hasChanged(){
         return hasChanged;
     }
 
-    public void addFile(TweeFile file){
-        tweeFiles.add(file);
+    public void addPassage(DolPassage pass){
+        passages.add(pass);
     }
     public void setHasChanged(){
         hasChanged = true;
