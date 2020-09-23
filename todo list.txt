@@ -14,7 +14,6 @@ ModLoader:
 - Make finding DolLocation, DolSubfolder, and TweeFile automated.
 (!)- Add TweeFile full overwrite method.
 (!)- Add Passage overwrite method.
-(!)- Track TweeFiles that are changed during mod init.
 (!)- Restrict individual mod access to it's folder.
 
 
@@ -23,6 +22,7 @@ ModLoader:
 
 
 Completed:
+(0.1.18)- Track changes made during mod init. Send warnings if a file has been previously changed.
 (0.1.17) - Be able to find the .properties file for each mod by finding it in it's mod folder instead of by it's name.
 (0.1.16) - Make mods have to be in individual folders. 
 (0.1.15) - Add failsafe for passage finding. 

@@ -1,16 +1,18 @@
 package com.mynamaneet.dolmodloader;
 
 public class DolPassage {
-    public DolPassage(String _file, String _name, String _tweeName){
-        this.file = _file;
-        this.name = _name;
-        this.tweeName = _tweeName;
-    }
     public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory){
         this.file = _file;
         this.name = _name;
         this.tweeName = _tweeName;
         this.parentDirectory = _parentDirectory;
+    }
+    public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory, boolean _hasChanged){
+        this.file = _file;
+        this.name = _name;
+        this.tweeName = _tweeName;
+        this.parentDirectory = _parentDirectory;
+        this.hasChanged = _hasChanged;
     }
 
 
@@ -18,6 +20,7 @@ public class DolPassage {
     private String name;
     private String tweeName;
     private String parentDirectory = "";
+    private boolean hasChanged = false;
 
 
     public String getFilePath(){
@@ -31,5 +34,12 @@ public class DolPassage {
     }
     public String getParentDirectory(){
         return parentDirectory;
+    }
+    public boolean hasChanged(){
+        return hasChanged;
+    }
+
+    public void setHasChanged(){
+        hasChanged = true;
     }
 }

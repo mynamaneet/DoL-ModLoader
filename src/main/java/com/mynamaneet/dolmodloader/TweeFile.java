@@ -5,20 +5,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TweeFile {
-    public TweeFile (File _filePath, String _name){
-        this.filePath = _filePath;
-        this.name = _name;
-    }
     public TweeFile (File _filePath, String _name, String _parent){
         this.filePath = _filePath;
         this.name = _name;
         this.parent = _parent;
+    }
+    public TweeFile (File _filePath, String _name, String _parent, boolean _hasChanged){
+        this.filePath = _filePath;
+        this.name = _name;
+        this.parent = _parent;
+        this.hasChanged = _hasChanged;
     }
 
     private File filePath;
     private String name;
     private String parent = "";
     private ArrayList<DolPassage> passages = new ArrayList<>();
+    private boolean hasChanged = false;
 
 
     public File getDirectoryPath(){
@@ -33,8 +36,14 @@ public class TweeFile {
     public List<DolPassage> getPassages(){
         return passages;
     }
+    public boolean hasChanged(){
+        return hasChanged;
+    }
 
     public void addPassage(DolPassage pass){
         passages.add(pass);
+    }
+    public void setHasChanged(){
+        hasChanged = true;
     }
 }
