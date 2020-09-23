@@ -42,7 +42,18 @@ public final class ModLoader {
     private static ArrayList<Mod> mods = new ArrayList<>();
     private static ArrayList<DolSubfolder> dolSubfolders = new ArrayList<>();
 
+    /*
+    File Organization:
+    SubFolder stores Location
 
+    Location stores TweeFile
+    Location links to SubFolder
+
+    TweeFile stores Passage
+    TweeFile links Location
+
+    Passage links TweeFile
+    */
     
     private static String getRunningPath() {
         try {
@@ -161,6 +172,7 @@ public final class ModLoader {
     }
 
 
+    @Deprecated
     private static void writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings){
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
@@ -210,8 +222,8 @@ public final class ModLoader {
         }
     }
 
-
-    private static boolean writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
+    //0 = no errors
+    private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
             String line;
@@ -229,21 +241,23 @@ public final class ModLoader {
             int targetDepth = 0;
             for (int i = 0; i < lines.size(); i++) {
                 String curLine = lines.get(i);
+
                 if(curLine.equals(targetString.get(targetDepth))){
                     if(targetDepth == targetString.size()-1){
                         targetIndex = i;
                         break;
+                    }else{
+                        targetDepth++;
                     }
-                    targetDepth++;
                 }
-                if(ifFailReqChecksFullLine){
+                else if(ifFailReqChecksFullLine){
                     if(curLine.equals(failReq.get(targetDepth))){
-                        return false;
+                        return 1;
                     }
                 }else{
                     CharSequence sequence = failReq.get(targetDepth);
                     if(curLine.contains(sequence)){
-                        return false;
+                        return 2;
                     }
                 }
             }
@@ -266,12 +280,12 @@ public final class ModLoader {
                 LOGGER.severe("Failed to find targetString");
             }
             
-            return true;
+            return 0;
 
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
-        return false;
+        return 3;
     }
 
 
@@ -293,7 +307,19 @@ public final class ModLoader {
                 }
             }
         }
-        throw new InvalidLocationException("Error finding DolLocation : " + name);
+        throw new InvalidLocationException("Error finding DolLocation (Name) : " + name);
+    }
+
+
+    public static DolLocation getDolLocation(File path) throws InvalidLocationException{
+        for (DolSubfolder subfolder : dolSubfolders) {
+            for (DolLocation location : subfolder.getLocations()) {
+                if(location.getDirectoryPath().equals(path)){
+                    return location;
+                }
+            }
+        }
+        throw new InvalidLocationException("Error finding DolLocation (Path) : " + path);
     }
 
 
@@ -352,8 +378,29 @@ public final class ModLoader {
         ArrayList<String> fail = new ArrayList<>();
         fail.add(null);
         fail.add("::");
+
+        //Check Changed
+        if(passage.hasChanged()){
+            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
+        }
         
-        writeToTwee(passage.getFilePath(), targets, message, fail, false);
+        int succeeded = writeToTwee(passage.getFilePath(), targets, message, fail, false);
+
+        //writeToTwee Error
+        if(succeeded > 0){
+            LOGGER.severe("An error occured during addPassageText (Error Code: "+succeeded+")");
+        } 
+        try{
+            //Set Changed
+            passage.setHasChanged();
+            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeName());
+            twee.setHasChanged();
+            getDolLocation(twee.getParent()).setHasChanged();
+        } catch(InvalidLocationException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
+        } catch(InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+        }
     }
 
 
