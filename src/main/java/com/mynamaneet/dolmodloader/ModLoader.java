@@ -7,12 +7,16 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -165,60 +169,17 @@ public final class ModLoader {
     }
 
 
-    @Deprecated
-    private static void writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings){
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
-            String line;
-            ArrayList<String> lines = new ArrayList<>();
-
-            //Record all lines
-            while((line=bufferedReader.readLine()) != null){
-                lines.add(line);
-            }
-
-            bufferedReader.close();
-
-            //Find Target Line
-            int targetIndex = -1;
-            int targetDepth = 0;
-            for (int i = 0; i < lines.size(); i++) {
-                String curLine = lines.get(i);
-                if(curLine.equals(targetString.get(targetDepth))){
-                    if(targetDepth == targetString.size()-1){
-                        targetIndex = i;
-                        break;
-                    }
-                    targetDepth++;
-                }
-            }
-
-            //Place text
-            if(targetIndex != -1){
-                targetIndex++;
-                for (int i = insertStrings.size()-1; i >= 0; i--) {
-                    lines.add(targetIndex, insertStrings.get(i));
-                }
-
-                //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
-                for (String curLine : lines) {
-                    bufferedWriter.write(curLine);
-                    bufferedWriter.newLine();
-                }
-                bufferedWriter.close();
-            } else{
-                LOGGER.severe("Failed to find targetString");
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
-        }
-    }
-
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
+            Reader r;
+            r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
+                public Reader run() throws IOException{
+                    return new FileReader(filePath);
+                }
+            });
+
+            BufferedReader bufferedReader = new BufferedReader(r);
             String line;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -275,7 +236,7 @@ public final class ModLoader {
             
             return 0;
 
-        } catch (IOException ex) {
+        } catch (IOException|PrivilegedActionException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
@@ -414,7 +375,7 @@ public final class ModLoader {
         try{
             //Creating LOGGER Handlers
             consoleHandler = new ConsoleHandler();
-            fileHandler = new FileHandler("./debug-log.log");
+            fileHandler = new FileHandler(getRunningPath()+"/debug-log.log");
 
             //Assigning handlers to LOGGER object
             LOGGER.addHandler(consoleHandler);
