@@ -414,7 +414,7 @@ public final class ModLoader {
         try{
             //Creating LOGGER Handlers
             consoleHandler = new ConsoleHandler();
-            fileHandler = new FileHandler("./debug-log.log");
+            fileHandler = new FileHandler(getRunningPath()+"\\debug-log.log"); 
 
             //Assigning handlers to LOGGER object
             LOGGER.addHandler(consoleHandler);
