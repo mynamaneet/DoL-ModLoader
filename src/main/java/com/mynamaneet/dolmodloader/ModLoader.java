@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -282,7 +283,7 @@ public final class ModLoader {
             
             return 0;
 
-        } catch (IOException ex) {
+        } catch (IOException|AccessControlException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
