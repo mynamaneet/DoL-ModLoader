@@ -546,7 +546,7 @@ public final class ModLoader {
                 LOGGER.log(Level.SEVERE, "Error occured while getting DOL version.", ex);
             }
             File html = new File(curRunningPath + "\\Degrees of Lewdity VERSION.html");
-            File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity " + dolVersion + " Modded.html");
+            File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity Modded.html");
             if(htmlDestination.exists()){
                 Files.delete(htmlDestination.toPath());
             }
