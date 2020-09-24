@@ -8,12 +8,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -172,6 +174,7 @@ public final class ModLoader {
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
+            //Create FileReader with read privileges
             Reader r;
             r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
                 public Reader run() throws IOException{
@@ -189,6 +192,7 @@ public final class ModLoader {
             }
 
             bufferedReader.close();
+            r.close();
 
             //Find Target Line
             int targetIndex = -1;
@@ -223,8 +227,16 @@ public final class ModLoader {
                     lines.add(targetIndex, insertStrings.get(i));
                 }
 
+                //Create FileWriter with write privileges
+                Writer w;
+                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
+                    public Writer run() throws IOException{
+                        return new FileWriter(filePath);
+                    }
+                });
+
                 //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+                BufferedWriter bufferedWriter = new BufferedWriter(w);
                 for (String curLine : lines) {
                     bufferedWriter.write(curLine);
                     bufferedWriter.newLine();
@@ -489,7 +501,15 @@ public final class ModLoader {
         try{
             String curRunningPath = getRunningPath() + "\\dol-files";
             String batchFile = getRunningPath() + "\\dol-files\\compile.bat";
-            Process compile = Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit"); //Open compile.bat in CMD
+
+            Process compile;
+            compile = AccessController.doPrivileged(new PrivilegedExceptionAction<Process>(){
+                public Process run() throws IOException{
+                    return Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit");
+                }
+            });
+
+            //Process compile = Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit"); //Open compile.bat in CMD
             synchronized(compile){
                 int failSafe = 0;
                 while(compile.isAlive() && failSafe <= 10){
@@ -514,7 +534,7 @@ public final class ModLoader {
             if(!(html.renameTo(htmlDestination))){
                 throw new SecurityException("Couldn't move and rename HTML.", new Throwable());
             }
-        } catch(IOException|ProcessWarningException|SecurityException ex){
+        } catch(IOException|ProcessWarningException|SecurityException|PrivilegedActionException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
         } catch(InterruptedException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
