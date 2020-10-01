@@ -21,6 +21,7 @@ public class DolPassage {
     private String tweeName;
     private String parentDirectory = "";
     private boolean hasChanged = false;
+    private boolean overwriten = false;
 
 
     public String getFilePath(){
@@ -37,6 +38,9 @@ public class DolPassage {
     }
     public boolean hasChanged(){
         return hasChanged;
+    }
+    public boolean isOverwriten(){
+        return overwriten;
     }
 
     public void setHasChanged(){
