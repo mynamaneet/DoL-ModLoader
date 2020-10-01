@@ -21,6 +21,7 @@ ModLoader:
 (#)- debug-log.log appears in source.
 - Edit Logger messages to have better details.
 (#)(?)(1)- Mods currently have access to all mod folders.
+- Rework addPassageText() to list newer additions to be below older addition.
 
 
 
