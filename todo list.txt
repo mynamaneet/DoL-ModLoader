@@ -4,6 +4,7 @@ Index:
 (!) = Very Important
 (*) = Being worked on in current branch
 (?) = Unsure if it will be implemented
+(#) = A bug that needs to be fixed
 (A Number) = Look at the More Info section
 
 (Not in order of importance)
@@ -17,6 +18,7 @@ ModLoader:
 (!)- Add Passage create option method.
 - Add Mod Debugging Mode.
 - Add way to track passage changes and delete those changes.
+(#)- debug-log.log appears in source.
 
 
 
