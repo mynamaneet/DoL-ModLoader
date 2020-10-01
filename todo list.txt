@@ -20,9 +20,15 @@ ModLoader:
 - Add way to track passage changes and delete those changes.
 (#)- debug-log.log appears in source.
 - Edit Logger messages to have better details.
+(#)(?)(1)- Mods currently have access to all mod folders.
 
 
 
+
+
+
+More Info:
+(1)- May not be able to fix unless a new security system is implemented. Mod file access is still limited to everything in the mods folder.
 
 
 
