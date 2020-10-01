@@ -16,6 +16,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.security.AccessControlContext;
+import java.security.AccessControlException;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -371,9 +372,45 @@ public final class ModLoader {
     }
 
 
-    public static void overwritePassage(){
-        //TODO
-        //Need to implement mod file localization first.
+    public static ArrayList<String> getResource(Mod mod, String fileName){
+        //TODO  Get file from mod folder
+
+        File resource;
+        try{
+            //The mod's folder path + \ + fileName  (Ex. "C:\...\Degrees of Lewdity\source\mods\Example Mod\" + fileName)
+            resource = new File(mod.modFolder.getAbsolutePath()+"\\"+fileName);
+            ArrayList<String> returnString = new ArrayList<>();
+            
+            if(resource.exists()){
+                //Uses ModLoader's Access to read resource
+                Reader reader = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
+                    public Reader run() throws IOException{
+                        return new FileReader(resource);
+                    }
+                });
+
+                //Writes each line of resource into returnString
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line;
+                while((line=bufferedReader.readLine()) != null){
+                    returnString.add(line);
+                }
+                bufferedReader.close();
+                reader.close();
+
+                return returnString;
+            }
+        } catch(PrivilegedActionException|AccessControlException|IOException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while getting mod resource ([mod: \"%1$s\"], [fileName: \"%2$s\"])", mod.getModName(), fileName), e);
+        }
+
+        //Return null if an error occured
+        return null;
+    }
+
+
+    public static void overwritePassage(DolPassage passage){
+        //TODO  Need to implement getResource() first
     }
 
 
