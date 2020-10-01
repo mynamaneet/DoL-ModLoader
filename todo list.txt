@@ -19,6 +19,7 @@ ModLoader:
 - Add Mod Debugging Mode.
 - Add way to track passage changes and delete those changes.
 (#)- debug-log.log appears in source.
+- Edit Logger messages to have better details.
 
 
 
