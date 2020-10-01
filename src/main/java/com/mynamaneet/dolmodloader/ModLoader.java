@@ -373,8 +373,6 @@ public final class ModLoader {
 
 
     public static ArrayList<String> getResource(Mod mod, String fileName){
-        //TODO  Get file from mod folder
-
         File resource;
         try{
             //The mod's folder path + \ + fileName  (Ex. "C:\...\Degrees of Lewdity\source\mods\Example Mod\" + fileName)
