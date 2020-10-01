@@ -16,6 +16,7 @@ ModLoader:
 (*)- Add Passage overwrite method.
 (!)- Add Passage create option method.
 - Add Mod Debugging Mode.
+- Add way to track passage changes and delete those changes.
 
 
 
