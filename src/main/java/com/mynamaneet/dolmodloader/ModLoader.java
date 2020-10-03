@@ -458,6 +458,26 @@ public final class ModLoader {
     }
 
 
+    public static ArrayList<String> readerToString(Reader reader){
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+        try{
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+
+            bufferedReader.close();
+            return lines;
+        } catch(IOException e){
+            LOGGER.log(Level.SEVERE, "Error occured in readerToString", e);
+        }
+
+        return new ArrayList<>();
+    }
+
+
     public static void overwritePassage(DolPassage passage, ArrayList<String> newPassage){
         /* 
         TODO
@@ -469,6 +489,7 @@ public final class ModLoader {
         */
 
         File oldTwee = new File(passage.getFilePath());
+        BufferedReader reader = new BufferedReader(getPrivilegedReader(oldTwee));
 
 
 
