@@ -23,6 +23,7 @@ ModLoader:
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Rework addPassageText() to list newer additions to be below older addition.
 - Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
+- Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 
 
 
