@@ -46,4 +46,7 @@ public class DolPassage {
     public void setHasChanged(){
         hasChanged = true;
     }
+    public void setOverwriten(){
+        overwriten = true;
+    }
 }
