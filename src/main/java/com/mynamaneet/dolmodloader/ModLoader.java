@@ -249,8 +249,7 @@ public final class ModLoader {
             }
             
             return 0;
-
-        } catch (IOException|PrivilegedActionException ex) {
+        } catch (IOException|PrivilegedActionException|AccessControlException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
@@ -561,7 +560,7 @@ public final class ModLoader {
         try{
             //Creating LOGGER Handlers
             consoleHandler = new ConsoleHandler();
-            fileHandler = new FileHandler(getRunningPath()+"/debug-log.log");
+            fileHandler = new FileHandler(getRunningPath()+"\\debug-log.log"); 
 
             //Assigning handlers to LOGGER object
             LOGGER.addHandler(consoleHandler);
@@ -701,7 +700,7 @@ public final class ModLoader {
                 LOGGER.log(Level.SEVERE, "Error occured while getting DOL version.", ex);
             }
             File html = new File(curRunningPath + "\\Degrees of Lewdity VERSION.html");
-            File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity " + dolVersion + " Modded.html");
+            File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity Modded.html");
             if(htmlDestination.exists()){
                 Files.delete(htmlDestination.toPath());
             }
