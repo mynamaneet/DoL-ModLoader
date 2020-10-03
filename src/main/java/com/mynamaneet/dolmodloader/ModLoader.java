@@ -298,6 +298,20 @@ public final class ModLoader {
     }
 
 
+    private static void writeNewFile(Writer w, ArrayList<String> text){
+        BufferedWriter bufferedWriter = new BufferedWriter(w);
+        try{
+            for (String curLine : text) {
+                bufferedWriter.write(curLine);
+                bufferedWriter.newLine();
+            }
+            bufferedWriter.close();
+        } catch(IOException e){
+            LOGGER.log(Level.SEVERE, "Error occurred in writeNewFile", e);
+        }
+    }
+
+
 
     //Start Get Methods
 
@@ -488,11 +502,42 @@ public final class ModLoader {
         5. mark the passage as overwriten.
         */
 
-        File oldTwee = new File(passage.getFilePath());
-        BufferedReader reader = new BufferedReader(getPrivilegedReader(oldTwee));
+        //Get passage's Twee File
+        File oldTweeLocation = new File(passage.getFilePath());
+        ArrayList<String> oldTwee = readerToString(getPrivilegedReader(oldTweeLocation));
 
+        //Search for passage in Twee File
 
+        //Search for passage index
+        int startIndex = -1;
+        for (int i = 0; i < oldTwee.size(); i++){
+            String curLine = oldTwee.get(i);
+            if(curLine.equals(":: "+passage.getName()+" [nobr]")){
+                startIndex = i;
+                break;
+            }
+        }
 
+        if(startIndex != -1){
+            int endIndex = -1;
+
+            //Search for index before next passage
+            for (int i = startIndex+1; i < oldTwee.size(); i++){
+                String curLine = oldTwee.get(i);
+                CharSequence finding = "::";
+                if(curLine.contains(finding)){
+                    endIndex = i-1;
+                }
+            }
+
+            //Remove passage
+            if(endIndex != -1){
+                for (int i = endIndex; i != startIndex; i--) {
+                    oldTwee.remove(i);
+                }
+
+            }
+        }
     }
 
 
