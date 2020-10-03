@@ -256,6 +256,53 @@ public final class ModLoader {
     }
 
 
+    private static Reader getPrivilegedReader(File file){
+        if(file.exists()){
+            try{
+                //Create FileReader with read privileges
+                Reader r;
+                r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
+                    public Reader run() throws IOException{
+                        return new FileReader(file);
+                    }
+                });
+                return r;
+            } catch(PrivilegedActionException e){
+                LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+            }
+        }
+
+        //If error occurred
+        return null;
+    }
+
+
+    private static Writer getPrivilegedWriter(File file){
+        if(file.exists()){
+            try{
+                //Create FileWriter with write privileges
+                Writer w;
+                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
+                    public Writer run() throws IOException{
+                        return new FileWriter(file);
+                    }
+                });
+                return w;
+            } catch(PrivilegedActionException e){
+                LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+            }
+        }
+
+        //If error occurred
+        return null;
+    }
+
+
+
+    //Start Get Methods
+
+
+
     public static DolSubfolder getDolSubfolder(String name) throws InvalidSubfolderException {
         for (DolSubfolder subfolder : dolSubfolders) {
             if(subfolder.getName().equals(name)){
@@ -310,7 +357,11 @@ public final class ModLoader {
     }
 
 
+
+    //End Get Methods
+
     //Start modApp methods
+
 
 
     public static void subscribeMod(Mod mod) {
@@ -403,12 +454,24 @@ public final class ModLoader {
         }
 
         //Return null if an error occured
-        return null;
+        return new ArrayList<>();
     }
 
 
-    public static void overwritePassage(DolPassage passage){
-        //TODO  Need to implement getResource() first
+    public static void overwritePassage(DolPassage passage, ArrayList<String> newPassage){
+        /* 
+        TODO
+        1. Store the passage's twee file in an array.
+        2. Locate the passage in the array and replace it with an empty passage with the same name.
+        3. Add the newPassage text to the array.
+        4. Replace the twee file with a new file created using the array.
+        5. mark the passage as overwriten.
+        */
+
+        File oldTwee = new File(passage.getFilePath());
+
+
+
     }
 
 
