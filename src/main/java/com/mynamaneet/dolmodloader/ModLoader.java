@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilePermission;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -257,20 +258,23 @@ public final class ModLoader {
 
 
     private static Reader getPrivilegedReader(File file){
-        if(file.exists()){
-            try{
-                //Create FileReader with read privileges
-                Reader r;
-                r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
-                    public Reader run() throws IOException{
-                        return new FileReader(file);
-                    }
-                });
-                return r;
-            } catch(PrivilegedActionException e){
-                LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
-            }
+        try{
+            //Create FileReader with read privileges
+
+            //AccessControlContext acc = AccessController.getContext();
+            //acc.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
+            //AccessController.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
+            Reader r;
+            r = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Reader>(){
+                public Reader run() throws IOException{
+                    return new FileReader(file);
+                }
+            });
+            return r;
+        } catch(PrivilegedActionException | AccessControlException e){
+            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
         }
+        
 
         //If error occurred
         return null;
@@ -278,19 +282,17 @@ public final class ModLoader {
 
 
     private static Writer getPrivilegedWriter(File file){
-        if(file.exists()){
-            try{
-                //Create FileWriter with write privileges
-                Writer w;
-                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
-                    public Writer run() throws IOException{
-                        return new FileWriter(file);
-                    }
-                });
-                return w;
-            } catch(PrivilegedActionException e){
-                LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
-            }
+        try{
+            //Create FileWriter with write privileges
+            Writer w;
+            w = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Writer>(){
+                public Writer run() throws IOException{
+                    return new FileWriter(file);
+                }
+            });
+            return w;
+        } catch(PrivilegedActionException e){
+            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
         }
 
         //If error occurred
@@ -437,7 +439,7 @@ public final class ModLoader {
     }
 
 
-    public static ArrayList<String> getResource(Mod mod, String fileName){
+    public static ArrayList<String> getTextResource(Mod mod, String fileName){
         File resource;
         try{
             //The mod's folder path + \ + fileName  (Ex. "C:\...\Degrees of Lewdity\source\mods\Example Mod\" + fileName)
@@ -492,26 +494,20 @@ public final class ModLoader {
     }
 
 
-    public static void overwritePassage(DolPassage passage, ArrayList<String> newPassage){
-        /* 
-        TODO
-        1. Store the passage's twee file in an array.
-        2. Locate the passage in the array and replace it with an empty passage with the same name.
-        3. Add the newPassage text to the array.
-        4. Replace the twee file with a new file created using the array.
-        5. mark the passage as overwriten.
-        */
+    public static void overwritePassage(DolPassage passage, ArrayList<String> newText){
+        if(passage.isOverwriten()){
+            LOGGER.warning("This passage has been previously overwriten. (" + passage.getName() + ")");
+        }
 
         //Get passage's Twee File
-        File oldTweeLocation = new File(passage.getFilePath());
-        ArrayList<String> oldTwee = readerToString(getPrivilegedReader(oldTweeLocation));
+        File tweeLocation = new File(passage.getFilePath());
+        ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
 
         //Search for passage in Twee File
-
         //Search for passage index
         int startIndex = -1;
-        for (int i = 0; i < oldTwee.size(); i++){
-            String curLine = oldTwee.get(i);
+        for (int i = 0; i < twee.size(); i++){
+            String curLine = twee.get(i);
             if(curLine.equals(":: "+passage.getName()+" [nobr]")){
                 startIndex = i;
                 break;
@@ -522,20 +518,34 @@ public final class ModLoader {
             int endIndex = -1;
 
             //Search for index before next passage
-            for (int i = startIndex+1; i < oldTwee.size(); i++){
-                String curLine = oldTwee.get(i);
+            for (int i = startIndex+1; i < twee.size(); i++){
+                String curLine = twee.get(i);
                 CharSequence finding = "::";
                 if(curLine.contains(finding)){
                     endIndex = i-1;
+                    break;
                 }
             }
 
-            //Remove passage
+            
             if(endIndex != -1){
+                //Remove passage text
                 for (int i = endIndex; i != startIndex; i--) {
-                    oldTwee.remove(i);
+                    twee.remove(i);
                 }
+                twee.add(startIndex+1, "");
 
+                //Add newText to passage
+                startIndex += 2;
+                for (int i = 0; i < newText.size(); i++) {
+                    endIndex = startIndex+i;
+                    twee.add(endIndex, newText.get(i));
+                }
+                twee.add(endIndex+1, "");
+
+                //Write to twee file
+                writeNewFile(getPrivilegedWriter(tweeLocation), twee);
+                passage.setOverwriten();
             }
         }
     }
