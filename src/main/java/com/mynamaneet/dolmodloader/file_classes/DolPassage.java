@@ -1,4 +1,4 @@
-package com.mynamaneet.dolmodloader;
+package com.mynamaneet.dolmodloader.file_classes;
 
 public class DolPassage {
     public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory){
@@ -21,6 +21,7 @@ public class DolPassage {
     private String tweeName;
     private String parentDirectory = "";
     private boolean hasChanged = false;
+    private boolean overwriten = false;
 
 
     public String getFilePath(){
@@ -38,8 +39,14 @@ public class DolPassage {
     public boolean hasChanged(){
         return hasChanged;
     }
+    public boolean isOverwriten(){
+        return overwriten;
+    }
 
     public void setHasChanged(){
         hasChanged = true;
+    }
+    public void setOverwriten(){
+        overwriten = true;
     }
 }

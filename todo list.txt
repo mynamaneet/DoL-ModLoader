@@ -4,6 +4,7 @@ Index:
 (!) = Very Important
 (*) = Being worked on in current branch
 (?) = Unsure if it will be implemented
+(#) = A bug that needs to be fixed
 (A Number) = Look at the More Info section
 
 (Not in order of importance)
@@ -13,16 +14,30 @@ Index:
 ModLoader:
 - Make finding DolLocation, DolSubfolder, and TweeFile automated.
 (!)- Add TweeFile full overwrite method.
-(!)- Add Passage overwrite method.
-(!)- Restrict individual mod access to it's folder.
+(!)- Add Passage create option method.
+- Add Mod Debugging Mode.
+- Add way to track passage changes and delete those changes.
+(#)- debug-log.log appears in source.
+- Edit Logger messages to have better details.
+(#)(?)(1)- Mods currently have access to all mod folders.
+- Rework addPassageText() to list newer additions to be below older addition.
+- Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
+- Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 
 
 
+
+
+
+More Info:
+(1)- May not be able to fix unless a new security system is implemented. Mod file access is still limited to everything in the mods folder.
 
 
 
 Completed:
-(0.1.18)- Track changes made during mod init. Send warnings if a file has been previously changed.
+(0.1.19) - Add Passage overwrite method.
+(0.1.19) - Restrict Mod file access.
+(0.1.18) - Track changes made during mod init. Send warnings if a file has been previously changed.
 (0.1.17) - Be able to find the .properties file for each mod by finding it in it's mod folder instead of by it's name.
 (0.1.16) - Make mods have to be in individual folders. 
 (0.1.15) - Add failsafe for passage finding. 

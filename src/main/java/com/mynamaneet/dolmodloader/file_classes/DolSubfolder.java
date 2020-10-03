@@ -1,4 +1,4 @@
-package com.mynamaneet.dolmodloader;
+package com.mynamaneet.dolmodloader.file_classes;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -4,20 +4,24 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.FilePermission;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.security.AccessControlContext;
 import java.security.AccessControlException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -25,12 +29,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.mynamaneet.dolmodloader.exceptions.InvalidLocationException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidModLocationException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidPassageException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidSubfolderException;
-import com.mynamaneet.dolmodloader.exceptions.InvalidTweeFileException;
-import com.mynamaneet.dolmodloader.exceptions.ProcessWarningException;
+import com.mynamaneet.dolmodloader.exceptions.*;
+import com.mynamaneet.dolmodloader.file_classes.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -173,60 +173,18 @@ public final class ModLoader {
     }
 
 
-    @Deprecated
-    private static void writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings){
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
-            String line;
-            ArrayList<String> lines = new ArrayList<>();
-
-            //Record all lines
-            while((line=bufferedReader.readLine()) != null){
-                lines.add(line);
-            }
-
-            bufferedReader.close();
-
-            //Find Target Line
-            int targetIndex = -1;
-            int targetDepth = 0;
-            for (int i = 0; i < lines.size(); i++) {
-                String curLine = lines.get(i);
-                if(curLine.equals(targetString.get(targetDepth))){
-                    if(targetDepth == targetString.size()-1){
-                        targetIndex = i;
-                        break;
-                    }
-                    targetDepth++;
-                }
-            }
-
-            //Place text
-            if(targetIndex != -1){
-                targetIndex++;
-                for (int i = insertStrings.size()-1; i >= 0; i--) {
-                    lines.add(targetIndex, insertStrings.get(i));
-                }
-
-                //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
-                for (String curLine : lines) {
-                    bufferedWriter.write(curLine);
-                    bufferedWriter.newLine();
-                }
-                bufferedWriter.close();
-            } else{
-                LOGGER.severe("Failed to find targetString");
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
-        }
-    }
-
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
+            //Create FileReader with read privileges
+            Reader r;
+            r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
+                public Reader run() throws IOException{
+                    return new FileReader(filePath);
+                }
+            });
+
+            BufferedReader bufferedReader = new BufferedReader(r);
             String line;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -236,6 +194,7 @@ public final class ModLoader {
             }
 
             bufferedReader.close();
+            r.close();
 
             //Find Target Line
             int targetIndex = -1;
@@ -270,8 +229,16 @@ public final class ModLoader {
                     lines.add(targetIndex, insertStrings.get(i));
                 }
 
+                //Create FileWriter with write privileges
+                Writer w;
+                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
+                    public Writer run() throws IOException{
+                        return new FileWriter(filePath);
+                    }
+                });
+
                 //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+                BufferedWriter bufferedWriter = new BufferedWriter(w);
                 for (String curLine : lines) {
                     bufferedWriter.write(curLine);
                     bufferedWriter.newLine();
@@ -282,12 +249,73 @@ public final class ModLoader {
             }
             
             return 0;
-
-        } catch (IOException|AccessControlException ex) {
+        } catch (IOException|PrivilegedActionException|AccessControlException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
     }
+
+
+    private static Reader getPrivilegedReader(File file){
+        try{
+            //Create FileReader with read privileges
+
+            //AccessControlContext acc = AccessController.getContext();
+            //acc.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
+            //AccessController.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
+            Reader r;
+            r = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Reader>(){
+                public Reader run() throws IOException{
+                    return new FileReader(file);
+                }
+            });
+            return r;
+        } catch(PrivilegedActionException | AccessControlException e){
+            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+        }
+        
+
+        //If error occurred
+        return null;
+    }
+
+
+    private static Writer getPrivilegedWriter(File file){
+        try{
+            //Create FileWriter with write privileges
+            Writer w;
+            w = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Writer>(){
+                public Writer run() throws IOException{
+                    return new FileWriter(file);
+                }
+            });
+            return w;
+        } catch(PrivilegedActionException e){
+            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+        }
+
+        //If error occurred
+        return null;
+    }
+
+
+    private static void writeNewFile(Writer w, ArrayList<String> text){
+        BufferedWriter bufferedWriter = new BufferedWriter(w);
+        try{
+            for (String curLine : text) {
+                bufferedWriter.write(curLine);
+                bufferedWriter.newLine();
+            }
+            bufferedWriter.close();
+        } catch(IOException e){
+            LOGGER.log(Level.SEVERE, "Error occurred in writeNewFile", e);
+        }
+    }
+
+
+
+    //Start Get Methods
+
 
 
     public static DolSubfolder getDolSubfolder(String name) throws InvalidSubfolderException {
@@ -344,7 +372,11 @@ public final class ModLoader {
     }
 
 
+
+    //End Get Methods
+
     //Start modApp methods
+
 
 
     public static void subscribeMod(Mod mod) {
@@ -371,6 +403,7 @@ public final class ModLoader {
     public static void logMessage(String message){
         LOGGER.info(message);
     }
+
 
     public static void addPassageText(ArrayList<String> message, DolPassage passage){
         ArrayList<String> targets = new ArrayList<>();
@@ -401,6 +434,118 @@ public final class ModLoader {
             LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
         } catch(InvalidTweeFileException e){
             LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+        }
+    }
+
+
+    public static ArrayList<String> getTextResource(Mod mod, String fileName){
+        File resource;
+        try{
+            //The mod's folder path + \ + fileName  (Ex. "C:\...\Degrees of Lewdity\source\mods\Example Mod\" + fileName)
+            resource = new File(mod.modFolder.getAbsolutePath()+"\\"+fileName);
+            ArrayList<String> returnString = new ArrayList<>();
+            
+            if(resource.exists()){
+                //Uses ModLoader's Access to read resource
+                Reader reader = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
+                    public Reader run() throws IOException{
+                        return new FileReader(resource);
+                    }
+                });
+
+                //Writes each line of resource into returnString
+                BufferedReader bufferedReader = new BufferedReader(reader);
+                String line;
+                while((line=bufferedReader.readLine()) != null){
+                    returnString.add(line);
+                }
+                bufferedReader.close();
+                reader.close();
+
+                return returnString;
+            }
+        } catch(PrivilegedActionException|AccessControlException|IOException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while getting mod resource ([mod: \"%1$s\"], [fileName: \"%2$s\"])", mod.getModName(), fileName), e);
+        }
+
+        //Return null if an error occured
+        return new ArrayList<>();
+    }
+
+
+    public static ArrayList<String> readerToString(Reader reader){
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+        try{
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+
+            bufferedReader.close();
+            return lines;
+        } catch(IOException e){
+            LOGGER.log(Level.SEVERE, "Error occured in readerToString", e);
+        }
+
+        return new ArrayList<>();
+    }
+
+
+    public static void overwritePassage(DolPassage passage, ArrayList<String> newText){
+        if(passage.isOverwriten()){
+            LOGGER.warning("This passage has been previously overwriten. (" + passage.getName() + ")");
+        }
+
+        //Get passage's Twee File
+        File tweeLocation = new File(passage.getFilePath());
+        ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
+
+        //Search for passage in Twee File
+        //Search for passage index
+        int startIndex = -1;
+        for (int i = 0; i < twee.size(); i++){
+            String curLine = twee.get(i);
+            if(curLine.equals(":: "+passage.getName()+" [nobr]")){
+                startIndex = i;
+                break;
+            }
+        }
+
+        if(startIndex != -1){
+            int endIndex = -1;
+
+            //Search for index before next passage
+            for (int i = startIndex+1; i < twee.size(); i++){
+                String curLine = twee.get(i);
+                CharSequence finding = "::";
+                if(curLine.contains(finding)){
+                    endIndex = i-1;
+                    break;
+                }
+            }
+
+            
+            if(endIndex != -1){
+                //Remove passage text
+                for (int i = endIndex; i != startIndex; i--) {
+                    twee.remove(i);
+                }
+                twee.add(startIndex+1, "");
+
+                //Add newText to passage
+                startIndex += 2;
+                for (int i = 0; i < newText.size(); i++) {
+                    endIndex = startIndex+i;
+                    twee.add(endIndex, newText.get(i));
+                }
+                twee.add(endIndex+1, "");
+
+                //Write to twee file
+                writeNewFile(getPrivilegedWriter(tweeLocation), twee);
+                passage.setOverwriten();
+            }
         }
     }
 
@@ -529,7 +674,15 @@ public final class ModLoader {
         try{
             String curRunningPath = getRunningPath() + "\\dol-files";
             String batchFile = getRunningPath() + "\\dol-files\\compile.bat";
-            Process compile = Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit"); //Open compile.bat in CMD
+
+            Process compile;
+            compile = AccessController.doPrivileged(new PrivilegedExceptionAction<Process>(){
+                public Process run() throws IOException{
+                    return Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit");
+                }
+            });
+
+            //Process compile = Runtime.getRuntime().exec(("cmd /c start \"\" \"")+batchFile+"\" && exit"); //Open compile.bat in CMD
             synchronized(compile){
                 int failSafe = 0;
                 while(compile.isAlive() && failSafe <= 10){
@@ -554,7 +707,7 @@ public final class ModLoader {
             if(!(html.renameTo(htmlDestination))){
                 throw new SecurityException("Couldn't move and rename HTML.", new Throwable());
             }
-        } catch(IOException|ProcessWarningException|SecurityException ex){
+        } catch(IOException|ProcessWarningException|SecurityException|PrivilegedActionException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
         } catch(InterruptedException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
