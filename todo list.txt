@@ -12,7 +12,7 @@ Index:
 
 
 ModLoader:
-(*)- Make finding DolSubfolder, DolLocation, and TweeFile automated.
+(*)- Make finding DolSubfolder, DolLocation, TweeFile, and DolPassage automated.
 (!)- Add TweeFile full overwrite method.
 (!)- Add Passage create option method.
 - Add Mod Debugging Mode.
