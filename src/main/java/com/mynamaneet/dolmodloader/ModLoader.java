@@ -141,10 +141,19 @@ public final class ModLoader {
 
 
     private static void setupDolSubfolders(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
+        String gamePathLocation = getRunningPath()+"\\dol-files\\game";
+        File gamePath = new File(gamePathLocation);
+        File[] files = gamePath.listFiles();
+        
+        for (File file : files) {
+            if(!(file.getName().equals("01-config") || file.getName().equals("02-CSS") || file.getName().equals("03-JavaScript") || file.getName().equals("04-Variables"))){
+                dolSubfolders.add(new DolSubfolder(file, file.getName()));
+            }
+        }
+        
 
         //overworld-town
-        dolSubfolders.add(new DolSubfolder(new File(gamePath+"\\overworld-town"), "overworld-town"));
+        //dolSubfolders.add(new DolSubfolder(new File(gamePath+"\\overworld-town"), "overworld-town"));
     }
 
 
