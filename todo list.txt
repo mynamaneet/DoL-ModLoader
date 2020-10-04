@@ -17,7 +17,6 @@ ModLoader:
 (!)- Add Passage create option method.
 - Add Mod Debugging Mode.
 - Add way to track passage changes and delete those changes.
-(#)- debug-log.log appears in source.
 - Edit Logger messages to have better details.
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Rework addPassageText() to list newer additions to be below older addition.
