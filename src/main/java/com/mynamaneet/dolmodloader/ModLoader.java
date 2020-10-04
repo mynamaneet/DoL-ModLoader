@@ -164,11 +164,14 @@ public final class ModLoader {
 
 
     private static void setupTweeFiles(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //inside loc-home
-        //main.twee
-        linkTweeToLocation("loc-home", new TweeFile(new File(gamePath+"\\overworld-town\\loc-home\\main.twee"), "main", "loc-home"));
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                File[] files = dolLocation.getDirectoryPath().listFiles();
+                for (File file : files) {
+                    linkTweeToLocation(dolLocation.getName(), new TweeFile(file, file.getName(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                }
+            }
+        }
     }
 
 
