@@ -150,10 +150,6 @@ public final class ModLoader {
                 dolSubfolders.add(new DolSubfolder(file, file.getName()));
             }
         }
-        
-
-        //overworld-town
-        //dolSubfolders.add(new DolSubfolder(new File(gamePath+"\\overworld-town"), "overworld-town"));
     }
 
 
