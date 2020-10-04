@@ -146,7 +146,7 @@ public final class ModLoader {
         File[] files = gamePath.listFiles();
         
         for (File file : files) {
-            if(!(file.getName().equals("01-config") || file.getName().equals("02-CSS") || file.getName().equals("03-JavaScript") || file.getName().equals("04-Variables"))){
+            if(file.getName().equals("overworld-forest") || file.getName().equals("overworld-plains") || file.getName().equals("overworld-town") || file.getName().equals("overworld-underground")){
                 dolSubfolders.add(new DolSubfolder(file, file.getName()));
             }
         }
@@ -154,10 +154,12 @@ public final class ModLoader {
 
 
     private static void setupDolLocations(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //loc-home
-        linkLocationToSubfolder("overworld-town", new DolLocation(new File(gamePath+"\\overworld-town\\loc-home"), "loc-home", "overworld-town")); 
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            File[] files = dolSubfolder.getDirectoryPath().listFiles();
+            for (File file : files) {
+                linkLocationToSubfolder(dolSubfolder.getName(), new DolLocation(file, file.getName(), dolSubfolder.getDirectoryPath().getAbsolutePath()));
+            }
+        }
     }
 
 
