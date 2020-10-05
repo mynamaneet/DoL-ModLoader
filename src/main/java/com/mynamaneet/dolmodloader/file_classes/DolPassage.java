@@ -1,12 +1,14 @@
 package com.mynamaneet.dolmodloader.file_classes;
 
+import java.io.File;
+
 public class DolPassage {
-    public DolPassage(TweeFile _tweeFile, String _name, String _parentDirectory){
+    public DolPassage(File _tweeFile, String _name, String _parentDirectory){
         this.file = _tweeFile;
         this.name = _name;
         this.parentDirectory = _parentDirectory;
     }
-    public DolPassage(TweeFile _tweeFile, String _name, String _parentDirectory, boolean _hasChanged){
+    public DolPassage(File _tweeFile, String _name, String _parentDirectory, boolean _hasChanged){
         this.file = _tweeFile;
         this.name = _name;
         this.parentDirectory = _parentDirectory;
@@ -14,14 +16,14 @@ public class DolPassage {
     }
 
 
-    private TweeFile file;
+    private File file;
     private String name;
     private String parentDirectory = "";
     private boolean hasChanged = false;
     private boolean overwriten = false;
 
 
-    public TweeFile getTweeFile(){
+    public File getTweeFile(){
         return file;
     }
     public String getName(){

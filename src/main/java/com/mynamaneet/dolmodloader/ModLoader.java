@@ -157,7 +157,9 @@ public final class ModLoader {
         for (DolSubfolder dolSubfolder : dolSubfolders) {
             File[] files = dolSubfolder.getDirectoryPath().listFiles();
             for (File file : files) {
-                linkLocationToSubfolder(dolSubfolder.getName(), new DolLocation(file, file.getName(), dolSubfolder.getDirectoryPath().getAbsolutePath()));
+                if(file.isDirectory()){
+                    linkLocationToSubfolder(dolSubfolder.getName(), new DolLocation(file, file.getName(), dolSubfolder.getDirectoryPath().getAbsolutePath()));
+                }
             }
         }
     }
@@ -168,7 +170,14 @@ public final class ModLoader {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
                 File[] files = dolLocation.getDirectoryPath().listFiles();
                 for (File file : files) {
-                    linkTweeToLocation(dolLocation.getName(), new TweeFile(file, file.getName(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                    if(file.isFile()){
+                        linkTweeToLocation(dolLocation.getName(), new TweeFile(file, file.getName(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                    } else if(file.getName().equals("classes") && file.isDirectory()){
+                        File[] innerFiles = new File(dolLocation.getDirectoryPath().getAbsolutePath() + "\\classes").listFiles();
+                        for (File innerFile : innerFiles) {
+                            linkTweeToLocation(dolLocation.getName(), new TweeFile(innerFile, innerFile.getName(), dolLocation.getDirectoryPath().getAbsolutePath()+"\\classes"));
+                        }
+                    }
                 }
             }
         }
@@ -176,7 +185,6 @@ public final class ModLoader {
 
 
     private static void setupDolPassages(){
-        ArrayList<Character> passageNameArray = new ArrayList<>();
         for (DolSubfolder dolSubfolder : dolSubfolders) {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
                 for (TweeFile tweeFile : dolLocation.getFiles()) {
@@ -184,18 +192,22 @@ public final class ModLoader {
                         BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
                         String line;
                         while((line = reader.readLine()) != null){
-                            char[] chars = line.toCharArray();
-                            if(chars[0] == ':' && chars[1] == ':'){
-                                for (int i = 3; i < chars.length; i++) {
-                                    if(chars[i] != '['){
-                                        passageNameArray.add(chars[i]);
-                                    } else{
+                            if(line.length() > 1 && line.charAt(0) == ':' && line.charAt(1) == ':'){
+                                ArrayList<Character> passageNameArray = new ArrayList<>();
+                                for (int i = 3; i < line.length(); i++) {
+                                    if(line.charAt(i) == ' ' && line.charAt(i+1) == '['){
                                         break;
+                                    } else{
+                                        passageNameArray.add(line.charAt(i));
                                     }
                                 }
-                                Character[] characters = new Character[30];
-                                passageNameArray.toArray(characters);
-                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile, characters.toString(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                                char[] chars = new char[passageNameArray.size()];
+                                for (int i = 0; i < passageNameArray.size(); i++) {
+                                    chars[i] = passageNameArray.get(i);
+                                }
+
+
+                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getDirectoryPath(), new String(chars), dolLocation.getDirectoryPath().getAbsolutePath()));
                             }
                         }
                         reader.close();
@@ -397,6 +409,7 @@ public final class ModLoader {
     }
 
 
+    @Deprecated
     public static DolPassage getDolPassage(TweeFile twee, String passageName) throws InvalidPassageException{
         for (DolPassage passage : twee.getPassages()) {
             if(passage.getName().equals(passageName)){
@@ -404,6 +417,22 @@ public final class ModLoader {
             }
         }
         throw new InvalidPassageException("Error finding DolPassage (" + passageName + ") in TweeFile (" + twee.getName() + ").");
+    }
+
+
+    public static DolPassage getDolPassage(String passageName) throws InvalidPassageException{
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()) {
+                    for (DolPassage dolPassage : tweeFile.getPassages()) {
+                        if(dolPassage.getName().equals(passageName)){
+                            return dolPassage;
+                        }
+                    }
+                }                
+            }
+        }
+        throw new InvalidPassageException("Error finding DolPassage (" + passageName + ")");
     }
 
 
@@ -453,7 +482,7 @@ public final class ModLoader {
             LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
         }
         
-        int succeeded = writeToTwee(passage.getTweeFile().getDirectoryPath().getAbsolutePath(), targets, message, fail, false);
+        int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
 
         //writeToTwee Error
         if(succeeded > 0){
@@ -534,7 +563,7 @@ public final class ModLoader {
         }
 
         //Get passage's Twee File
-        File tweeLocation = new File(passage.getTweeFile().getDirectoryPath().getAbsolutePath());
+        File tweeLocation = new File(passage.getTweeFile().getAbsolutePath());
         ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
 
         //Search for passage in Twee File
