@@ -221,8 +221,6 @@ public final class ModLoader {
 
 
     private static void setupPassageTextLocations(){
-        //TODO
-
         for (DolSubfolder dolSubfolder : dolSubfolders) {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
                 for (TweeFile tweeFile : dolLocation.getFiles()){
@@ -246,8 +244,6 @@ public final class ModLoader {
                             foundCase = false;
                             dontAdd = false;
 
-                            //LOGGER.info(" "+curLineCount);
-
                             //Passage Name
                             if(lines.get(i).length() > 2){
                                 if(lines.get(i).charAt(0) == ':' && lines.get(i).charAt(1) == ':'){
@@ -257,8 +253,6 @@ public final class ModLoader {
                                     foundCase = true;
                                     dontAdd = true;
                                     placedFirstAddLine = false;
-
-                                    //LOGGER.info("PASSAGE " + i);
                                 }
                             }
 
@@ -284,10 +278,6 @@ public final class ModLoader {
                                         addLineCount++;
                                         placedFirstAddLine = true;
                                         dontAdd = true;
-
-                                        //LOGGER.info("BEGINNING SET " + i);
-                                    } else{
-                                        //LOGGER.info("SET "+i);
                                     }
                                 }
                             }
@@ -322,10 +312,10 @@ public final class ModLoader {
 
                             
                             
-                            // if(!foundCase && !placedFirstAddLine && curLineCount == 2){
-                            //     lines.add(i+1, "/*line"+addLineCount+"*/");
-                            //     addLineCount++;
-                            // }
+                            if(!foundCase && !placedFirstAddLine && curLineCount == 2){
+                                lines.add(i+1, "/*line"+addLineCount+"*/");
+                                addLineCount++;
+                            }
 
                             
                             //check for <<link
@@ -347,15 +337,11 @@ public final class ModLoader {
                                         aboveChecked = true;
                                         lines.add(i, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("ABOVE EMPTY ADD "+(i));
                                     }
                                     else if(!(lines.get(i-1).substring(0, 6).equals("/*line"))){
                                         aboveChecked = true;
                                         lines.add(i, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("ABOVE ADD "+(i));
                                     }
                                 }
 
@@ -365,14 +351,10 @@ public final class ModLoader {
                                         //Line Empty
                                         lines.add(i+2, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("BELOW EMPTY ADD "+(i+2));
                                     }
                                     else if(!(lines.get(i+2).substring(0, 6).equals("/*line"))){
                                         lines.add(i+2, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("BELOW ADD "+(i+2));
                                     }
                                 } else{
                                     //Check line 1 below
@@ -380,14 +362,10 @@ public final class ModLoader {
                                         //Line Empty
                                         lines.add(i+1, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("BELOW EMPTY ADD "+(i+1));
                                     }
                                     else if(!(lines.get(i+1).substring(0, 6).equals("/*line"))){
                                         lines.add(i+1, "/*line"+addLineCount+"*/");
                                         addLineCount++;
-
-                                        //LOGGER.info("BELOW ADD "+(i+1));
                                     }
                                 }
                             }
@@ -407,22 +385,6 @@ public final class ModLoader {
             }
         }
     }
-
-
-    // private static int addTextLocation(ArrayList<String> list, int index, int count){
-    //     //Check line below
-    //     if(!(list.get(index+1).substring(0, 1).equals("/*"))){
-    //         list.add(index+1, "/*line"+count+"*/");
-    //         count++;
-    //     }
-    //     //Check line above
-    //     if(!(list.get(index-1).substring(0, 1).equals("/*"))){
-    //         list.add(index, "/*line"+count+"*/");
-    //         count++;
-    //     }
-
-    //     return count;
-    // }
 
 
     //0 = no errors
@@ -511,10 +473,6 @@ public final class ModLoader {
     private static Reader getPrivilegedReader(File file){
         try{
             //Create FileReader with read privileges
-
-            //AccessControlContext acc = AccessController.getContext();
-            //acc.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
-            //AccessController.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
             Reader r;
             r = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Reader>(){
                 public Reader run() throws IOException{
@@ -611,17 +569,6 @@ public final class ModLoader {
             }
         }
         throw new InvalidTweeFileException("Error finding TweeFile (" + tweeName + ") in DolLocation (" + location.getName() +").");
-    }
-
-
-    @Deprecated
-    public static DolPassage getDolPassage(TweeFile twee, String passageName) throws InvalidPassageException{
-        for (DolPassage passage : twee.getPassages()) {
-            if(passage.getName().equals(passageName)){
-                return passage;
-            }
-        }
-        throw new InvalidPassageException("Error finding DolPassage (" + passageName + ") in TweeFile (" + twee.getName() + ").");
     }
 
 
