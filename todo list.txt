@@ -20,6 +20,7 @@ ModLoader:
 - Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
+(*)- Automate addPassageText() source locations.
 
 
 
