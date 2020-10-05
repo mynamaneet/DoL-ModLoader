@@ -621,10 +621,10 @@ public final class ModLoader {
     }
 
 
-    public static void addPassageText(ArrayList<String> message, DolPassage passage){
+    public static void addPassageText(ArrayList<String> message, DolPassage passage, int lineNumber){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
-        targets.add("/*newtext*/");
+        targets.add("/*line" + lineNumber + "*/");
         ArrayList<String> fail = new ArrayList<>();
         fail.add(null);
         fail.add("::");
@@ -635,6 +635,40 @@ public final class ModLoader {
         }
         
         int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
+
+        //writeToTwee Error
+        if(succeeded > 0){
+            LOGGER.severe("An error occured during addPassageText (Error Code: "+succeeded+")");
+        } 
+        try{
+            //Set Changed
+            passage.setHasChanged();
+            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
+            twee.setHasChanged();
+            getDolLocation(twee.getParent()).setHasChanged();
+        } catch(InvalidLocationException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
+        } catch(InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+        }
+    }
+
+    public static void addPassageText(String message, DolPassage passage, int lineNumber){
+        ArrayList<String> targets = new ArrayList<>();
+        targets.add(":: "+passage.getName()+" [nobr]");
+        targets.add("/*line" + lineNumber + "*/");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add(null);
+        fail.add("::");
+
+        //Check Changed
+        if(passage.hasChanged()){
+            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
+        }
+
+        ArrayList<String> tempList = new ArrayList<>();
+        tempList.add(message);
+        int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, tempList, fail, false);
 
         //writeToTwee Error
         if(succeeded > 0){
