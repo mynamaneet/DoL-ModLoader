@@ -176,10 +176,35 @@ public final class ModLoader {
 
 
     private static void setupDolPassages(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //Bedroom
-        linkPassageToTwee("loc-home", "main", new DolPassage(gamePath+"\\overworld-town\\loc-home\\main.twee", "Bedroom", "main", gamePath+"\\overworld-town\\loc-home"));
+        ArrayList<Character> passageNameArray = new ArrayList<>();
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()) {
+                    try{
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        String line;
+                        while((line = reader.readLine()) != null){
+                            char[] chars = line.toCharArray();
+                            if(chars[0] == ':' && chars[1] == ':'){
+                                for (int i = 3; i < chars.length; i++) {
+                                    if(chars[i] != '['){
+                                        passageNameArray.add(chars[i]);
+                                    } else{
+                                        break;
+                                    }
+                                }
+                                Character[] characters = new Character[30];
+                                passageNameArray.toArray(characters);
+                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile, characters.toString(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                            }
+                        }
+                        reader.close();
+                    } catch(IOException e){
+                        LOGGER.log(Level.SEVERE, "Error in setupDolPassages()", e);
+                    }
+                }
+            }
+        }
     }
 
 
@@ -428,7 +453,7 @@ public final class ModLoader {
             LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
         }
         
-        int succeeded = writeToTwee(passage.getFilePath(), targets, message, fail, false);
+        int succeeded = writeToTwee(passage.getTweeFile().getDirectoryPath().getAbsolutePath(), targets, message, fail, false);
 
         //writeToTwee Error
         if(succeeded > 0){
@@ -437,7 +462,7 @@ public final class ModLoader {
         try{
             //Set Changed
             passage.setHasChanged();
-            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeName());
+            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
             twee.setHasChanged();
             getDolLocation(twee.getParent()).setHasChanged();
         } catch(InvalidLocationException e){
@@ -509,7 +534,7 @@ public final class ModLoader {
         }
 
         //Get passage's Twee File
-        File tweeLocation = new File(passage.getFilePath());
+        File tweeLocation = new File(passage.getTweeFile().getDirectoryPath().getAbsolutePath());
         ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
 
         //Search for passage in Twee File

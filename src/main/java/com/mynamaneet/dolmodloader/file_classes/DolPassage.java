@@ -1,37 +1,31 @@
 package com.mynamaneet.dolmodloader.file_classes;
 
 public class DolPassage {
-    public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory){
-        this.file = _file;
+    public DolPassage(TweeFile _tweeFile, String _name, String _parentDirectory){
+        this.file = _tweeFile;
         this.name = _name;
-        this.tweeName = _tweeName;
         this.parentDirectory = _parentDirectory;
     }
-    public DolPassage(String _file, String _name, String _tweeName, String _parentDirectory, boolean _hasChanged){
-        this.file = _file;
+    public DolPassage(TweeFile _tweeFile, String _name, String _parentDirectory, boolean _hasChanged){
+        this.file = _tweeFile;
         this.name = _name;
-        this.tweeName = _tweeName;
         this.parentDirectory = _parentDirectory;
         this.hasChanged = _hasChanged;
     }
 
 
-    private String file;
+    private TweeFile file;
     private String name;
-    private String tweeName;
     private String parentDirectory = "";
     private boolean hasChanged = false;
     private boolean overwriten = false;
 
 
-    public String getFilePath(){
+    public TweeFile getTweeFile(){
         return file;
     }
     public String getName(){
         return name;
-    }
-    public String getTweeName(){
-        return tweeName;
     }
     public String getParentDirectory(){
         return parentDirectory;
