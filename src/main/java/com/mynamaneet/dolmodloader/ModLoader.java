@@ -141,35 +141,82 @@ public final class ModLoader {
 
 
     private static void setupDolSubfolders(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //overworld-town
-        dolSubfolders.add(new DolSubfolder(new File(gamePath+"\\overworld-town"), "overworld-town"));
+        String gamePathLocation = getRunningPath()+"\\dol-files\\game";
+        File gamePath = new File(gamePathLocation);
+        File[] files = gamePath.listFiles();
+        
+        for (File file : files) {
+            if(file.getName().equals("overworld-forest") || file.getName().equals("overworld-plains") || file.getName().equals("overworld-town") || file.getName().equals("overworld-underground")){
+                dolSubfolders.add(new DolSubfolder(file, file.getName()));
+            }
+        }
     }
 
 
     private static void setupDolLocations(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //loc-home
-        linkLocationToSubfolder("overworld-town", new DolLocation(new File(gamePath+"\\overworld-town\\loc-home"), "loc-home", "overworld-town")); 
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            File[] files = dolSubfolder.getDirectoryPath().listFiles();
+            for (File file : files) {
+                if(file.isDirectory()){
+                    linkLocationToSubfolder(dolSubfolder.getName(), new DolLocation(file, file.getName(), dolSubfolder.getDirectoryPath().getAbsolutePath()));
+                }
+            }
+        }
     }
 
 
     private static void setupTweeFiles(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
-
-        //inside loc-home
-        //main.twee
-        linkTweeToLocation("loc-home", new TweeFile(new File(gamePath+"\\overworld-town\\loc-home\\main.twee"), "main", "loc-home"));
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                File[] files = dolLocation.getDirectoryPath().listFiles();
+                for (File file : files) {
+                    if(file.isFile()){
+                        linkTweeToLocation(dolLocation.getName(), new TweeFile(file, file.getName(), dolLocation.getDirectoryPath().getAbsolutePath()));
+                    } else if(file.getName().equals("classes") && file.isDirectory()){
+                        File[] innerFiles = new File(dolLocation.getDirectoryPath().getAbsolutePath() + "\\classes").listFiles();
+                        for (File innerFile : innerFiles) {
+                            linkTweeToLocation(dolLocation.getName(), new TweeFile(innerFile, innerFile.getName(), dolLocation.getDirectoryPath().getAbsolutePath()+"\\classes"));
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
     private static void setupDolPassages(){
-        String gamePath = getRunningPath()+"\\dol-files\\game";
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()) {
+                    try{
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        String line;
+                        while((line = reader.readLine()) != null){
+                            if(line.length() > 1 && line.charAt(0) == ':' && line.charAt(1) == ':'){
+                                ArrayList<Character> passageNameArray = new ArrayList<>();
+                                for (int i = 3; i < line.length(); i++) {
+                                    if(line.charAt(i) == ' ' && line.charAt(i+1) == '['){
+                                        break;
+                                    } else{
+                                        passageNameArray.add(line.charAt(i));
+                                    }
+                                }
+                                char[] chars = new char[passageNameArray.size()];
+                                for (int i = 0; i < passageNameArray.size(); i++) {
+                                    chars[i] = passageNameArray.get(i);
+                                }
 
-        //Bedroom
-        linkPassageToTwee("loc-home", "main", new DolPassage(gamePath+"\\overworld-town\\loc-home\\main.twee", "Bedroom", "main", gamePath+"\\overworld-town\\loc-home"));
+
+                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getDirectoryPath(), new String(chars), dolLocation.getDirectoryPath().getAbsolutePath()));
+                            }
+                        }
+                        reader.close();
+                    } catch(IOException e){
+                        LOGGER.log(Level.SEVERE, "Error in setupDolPassages()", e);
+                    }
+                }
+            }
+        }
     }
 
 
@@ -362,6 +409,7 @@ public final class ModLoader {
     }
 
 
+    @Deprecated
     public static DolPassage getDolPassage(TweeFile twee, String passageName) throws InvalidPassageException{
         for (DolPassage passage : twee.getPassages()) {
             if(passage.getName().equals(passageName)){
@@ -369,6 +417,22 @@ public final class ModLoader {
             }
         }
         throw new InvalidPassageException("Error finding DolPassage (" + passageName + ") in TweeFile (" + twee.getName() + ").");
+    }
+
+
+    public static DolPassage getDolPassage(String passageName) throws InvalidPassageException{
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()) {
+                    for (DolPassage dolPassage : tweeFile.getPassages()) {
+                        if(dolPassage.getName().equals(passageName)){
+                            return dolPassage;
+                        }
+                    }
+                }                
+            }
+        }
+        throw new InvalidPassageException("Error finding DolPassage (" + passageName + ")");
     }
 
 
@@ -418,7 +482,7 @@ public final class ModLoader {
             LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
         }
         
-        int succeeded = writeToTwee(passage.getFilePath(), targets, message, fail, false);
+        int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
 
         //writeToTwee Error
         if(succeeded > 0){
@@ -427,7 +491,7 @@ public final class ModLoader {
         try{
             //Set Changed
             passage.setHasChanged();
-            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeName());
+            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
             twee.setHasChanged();
             getDolLocation(twee.getParent()).setHasChanged();
         } catch(InvalidLocationException e){
@@ -499,7 +563,7 @@ public final class ModLoader {
         }
 
         //Get passage's Twee File
-        File tweeLocation = new File(passage.getFilePath());
+        File tweeLocation = new File(passage.getTweeFile().getAbsolutePath());
         ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
 
         //Search for passage in Twee File
