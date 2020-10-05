@@ -220,6 +220,211 @@ public final class ModLoader {
     }
 
 
+    private static void setupPassageTextLocations(){
+        //TODO
+
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()){
+                        try{
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        ArrayList<String> lines = new ArrayList<>();
+                        String line;
+                        while((line = reader.readLine()) != null){
+                            lines.add(line);
+                        }
+                        reader.close();
+
+                        int addLineCount = 1;
+                        int curLineCount = 0;
+                        boolean foundLink = false;
+                        boolean foundCase = false;
+                        boolean dontAdd = false;
+                        boolean placedFirstAddLine = false;
+                        for (int i = 0; i < lines.size()-1; i++) {
+                            curLineCount++;
+                            foundCase = false;
+                            dontAdd = false;
+
+                            //LOGGER.info(" "+curLineCount);
+
+                            //Passage Name
+                            if(lines.get(i).length() > 2){
+                                if(lines.get(i).charAt(0) == ':' && lines.get(i).charAt(1) == ':'){
+                                    addLineCount = 1;
+                                    curLineCount = 0;
+                                    foundLink = false;
+                                    foundCase = true;
+                                    dontAdd = true;
+                                    placedFirstAddLine = false;
+
+                                    //LOGGER.info("PASSAGE " + i);
+                                }
+                            }
+
+                            int offset = 0;
+                            if(lines.get(i).length() > 0){
+                                for (int j = 0; j < lines.get(i).length(); j++) {
+                                    if(lines.get(i).charAt(j) == ' ' || lines.get(i).charAt(j) == '\t'){
+                                        offset++;
+                                    } else{
+                                        break;
+                                    }
+                                }
+                            }
+
+
+                            //Check for <<set
+                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                                if(lines.get(i).substring(0+offset, 5+offset).equals("<<set")){
+                                    foundCase = true;
+                                    //Check if beginning set
+                                    if(curLineCount <= 2){
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                        placedFirstAddLine = true;
+                                        dontAdd = true;
+
+                                        //LOGGER.info("BEGINNING SET " + i);
+                                    } else{
+                                        //LOGGER.info("SET "+i);
+                                    }
+                                }
+                            }
+
+                            //Check for <<if
+                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                                if(lines.get(i).substring(0+offset, 4+offset).equals("<<if")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //Check for <</if
+                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                                if(lines.get(i).substring(0+offset, 5+offset).equals("<</if")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //check for <<else
+                            if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                                if(lines.get(i).substring(0+offset, 6+offset).equals("<<else")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //check for <</else
+                            if(!foundLink && !foundCase && lines.get(i).length() > 7+offset){
+                                if(lines.get(i).substring(0+offset, 7+offset).equals("<</else")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            
+                            
+                            // if(!foundCase && !placedFirstAddLine && curLineCount == 2){
+                            //     lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //     addLineCount++;
+                            // }
+
+                            
+                            //check for <<link
+                            if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                                if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
+                                    foundLink = true;
+                                }
+                            }
+
+
+
+                            //Add Lines
+                            if(foundCase && !dontAdd){
+                                boolean aboveChecked = false;
+                                //Check line above
+                                if(i != 0){
+                                    if(lines.get(i-1).length() < 6){
+                                        //Line Empty
+                                        aboveChecked = true;
+                                        lines.add(i, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("ABOVE EMPTY ADD "+(i));
+                                    }
+                                    else if(!(lines.get(i-1).substring(0, 6).equals("/*line"))){
+                                        aboveChecked = true;
+                                        lines.add(i, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("ABOVE ADD "+(i));
+                                    }
+                                }
+
+                                //Check line 2 below
+                                if(aboveChecked){
+                                    if(lines.get(i+2).length() <= 6){
+                                        //Line Empty
+                                        lines.add(i+2, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("BELOW EMPTY ADD "+(i+2));
+                                    }
+                                    else if(!(lines.get(i+2).substring(0, 6).equals("/*line"))){
+                                        lines.add(i+2, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("BELOW ADD "+(i+2));
+                                    }
+                                } else{
+                                    //Check line 1 below
+                                    if(lines.get(i+1).length() <= 6){
+                                        //Line Empty
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("BELOW EMPTY ADD "+(i+1));
+                                    }
+                                    else if(!(lines.get(i+1).substring(0, 6).equals("/*line"))){
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+
+                                        //LOGGER.info("BELOW ADD "+(i+1));
+                                    }
+                                }
+                            }
+                        }
+
+
+                        BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(tweeFile.getDirectoryPath()));
+                        for (String curLine : lines) {
+                            writer.write(curLine);
+                            writer.newLine();
+                        }
+                        writer.close();
+                    } catch(IOException e){
+                        LOGGER.log(Level.SEVERE, "Error in setupPassageTextLocations()", e);
+                    }
+                }
+            }
+        }
+    }
+
+
+    // private static int addTextLocation(ArrayList<String> list, int index, int count){
+    //     //Check line below
+    //     if(!(list.get(index+1).substring(0, 1).equals("/*"))){
+    //         list.add(index+1, "/*line"+count+"*/");
+    //         count++;
+    //     }
+    //     //Check line above
+    //     if(!(list.get(index-1).substring(0, 1).equals("/*"))){
+    //         list.add(index, "/*line"+count+"*/");
+    //         count++;
+    //     }
+
+    //     return count;
+    // }
+
+
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
@@ -714,6 +919,11 @@ public final class ModLoader {
         LOGGER.info("Setting up DOL Passages...");
         setupDolPassages();
         LOGGER.info("Finished setting up DOL Passages.");
+
+        //Setup PassageTextLocations
+        LOGGER.info("Placing text locations...");
+        setupPassageTextLocations();
+        LOGGER.info("Finished placing text locations.");
 
         //Load Mods
         LOGGER.info("Loading mods...");
