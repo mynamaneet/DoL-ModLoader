@@ -438,7 +438,7 @@ public final class ModLoader {
 
             //Place text
             if(targetIndex != -1){
-                targetIndex++;
+                //targetIndex++;
                 for (int i = insertStrings.size()-1; i >= 0; i--) {
                     lines.add(targetIndex, insertStrings.get(i));
                 }
@@ -645,7 +645,7 @@ public final class ModLoader {
             passage.setHasChanged();
             TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
             twee.setHasChanged();
-            getDolLocation(twee.getParent()).setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
             LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
         } catch(InvalidTweeFileException e){
@@ -679,7 +679,7 @@ public final class ModLoader {
             passage.setHasChanged();
             TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
             twee.setHasChanged();
-            getDolLocation(twee.getParent()).setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
             LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
         } catch(InvalidTweeFileException e){

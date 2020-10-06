@@ -16,11 +16,9 @@ ModLoader:
 - Add way to track passage changes and delete those changes.
 - Edit Logger messages to have better details.
 (#)(?)(1)- Mods currently have access to all mod folders.
-- Rework addPassageText() to list newer additions to be below older addition.
-- Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
+(*)- Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
-(*)- Automate addPassageText() source locations.
 
 
 
@@ -33,6 +31,8 @@ More Info:
 
 
 Completed:
+(0.1.21)- Automate addPassageText() source locations.
+(0.1.21)- Rework addPassageText() to list newer additions to be below older addition.
 (0.1.20)- Make finding DolSubfolder, DolLocation, TweeFile, and DolPassage automated.
 (0.1.19)- Add Passage overwrite method.
 (0.1.19)- Restrict Mod file access.
