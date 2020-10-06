@@ -18,6 +18,7 @@ ModLoader:
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
+- Add Documentation
 
 
 

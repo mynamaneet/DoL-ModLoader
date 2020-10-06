@@ -310,8 +310,16 @@ public final class ModLoader {
                                 }
                             }
 
+                            //Check for <br>
+                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                                if(lines.get(i).substring(0+offset, 4+offset).equals("<br>")){
+                                    foundCase = true;
+                                }
+                            }
+
                             
                             
+                            //Check if no beginning set
                             if(!foundCase && !placedFirstAddLine && curLineCount == 2){
                                 lines.add(i+1, "/*line"+addLineCount+"*/");
                                 addLineCount++;
@@ -319,11 +327,11 @@ public final class ModLoader {
 
                             
                             //check for <<link
-                            if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
-                                if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
-                                    foundLink = true;
-                                }
-                            }
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                            //     if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
+                            //         foundLink = true;
+                            //     }
+                            // }
 
 
 
@@ -648,7 +656,7 @@ public final class ModLoader {
 
         //Check Changed
         if(passage.hasChanged()){
-            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
+            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");
         }
 
         ArrayList<String> tempList = new ArrayList<>();
