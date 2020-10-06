@@ -20,6 +20,8 @@ ModLoader:
 - Add way to create custom variables.
 (2)- Add helper functions.
 (*)- Add custom DoL file classes and methods.
+- Have linking methods check for name conflicts.
+(#)- HTML file sometimes is still in use while it's trying to be renamed and copied.
 
 
 
