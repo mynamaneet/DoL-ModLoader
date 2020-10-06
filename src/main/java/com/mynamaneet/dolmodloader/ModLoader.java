@@ -220,18 +220,187 @@ public final class ModLoader {
     }
 
 
+    private static void setupPassageTextLocations(){
+        for (DolSubfolder dolSubfolder : dolSubfolders) {
+            for (DolLocation dolLocation : dolSubfolder.getLocations()) {
+                for (TweeFile tweeFile : dolLocation.getFiles()){
+                        try{
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        ArrayList<String> lines = new ArrayList<>();
+                        String line;
+                        while((line = reader.readLine()) != null){
+                            lines.add(line);
+                        }
+                        reader.close();
+
+                        int addLineCount = 1;
+                        int curLineCount = 0;
+                        boolean foundLink = false;
+                        boolean foundCase = false;
+                        boolean dontAdd = false;
+                        boolean placedFirstAddLine = false;
+                        for (int i = 0; i < lines.size()-1; i++) {
+                            curLineCount++;
+                            foundCase = false;
+                            dontAdd = false;
+
+                            //Passage Name
+                            if(lines.get(i).length() > 2){
+                                if(lines.get(i).charAt(0) == ':' && lines.get(i).charAt(1) == ':'){
+                                    addLineCount = 1;
+                                    curLineCount = 0;
+                                    foundLink = false;
+                                    foundCase = true;
+                                    dontAdd = true;
+                                    placedFirstAddLine = false;
+                                }
+                            }
+
+                            int offset = 0;
+                            if(lines.get(i).length() > 0){
+                                for (int j = 0; j < lines.get(i).length(); j++) {
+                                    if(lines.get(i).charAt(j) == ' ' || lines.get(i).charAt(j) == '\t'){
+                                        offset++;
+                                    } else{
+                                        break;
+                                    }
+                                }
+                            }
+
+
+                            //Check for <<set
+                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                                if(lines.get(i).substring(0+offset, 5+offset).equals("<<set")){
+                                    foundCase = true;
+                                    //Check if beginning set
+                                    if(curLineCount <= 2){
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                        placedFirstAddLine = true;
+                                        dontAdd = true;
+                                    }
+                                }
+                            }
+
+                            //Check for <<if
+                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                                if(lines.get(i).substring(0+offset, 4+offset).equals("<<if")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //Check for <</if
+                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                                if(lines.get(i).substring(0+offset, 5+offset).equals("<</if")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //check for <<else
+                            if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                                if(lines.get(i).substring(0+offset, 6+offset).equals("<<else")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //check for <</else
+                            if(!foundLink && !foundCase && lines.get(i).length() > 7+offset){
+                                if(lines.get(i).substring(0+offset, 7+offset).equals("<</else")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            //Check for <br>
+                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                                if(lines.get(i).substring(0+offset, 4+offset).equals("<br>")){
+                                    foundCase = true;
+                                }
+                            }
+
+                            
+                            
+                            //Check if no beginning set
+                            if(!foundCase && !placedFirstAddLine && curLineCount == 2){
+                                lines.add(i+1, "/*line"+addLineCount+"*/");
+                                addLineCount++;
+                            }
+
+                            
+                            //check for <<link
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                            //     if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
+                            //         foundLink = true;
+                            //     }
+                            // }
+
+
+
+                            //Add Lines
+                            if(foundCase && !dontAdd){
+                                boolean aboveChecked = false;
+                                //Check line above
+                                if(i != 0){
+                                    if(lines.get(i-1).length() < 6){
+                                        //Line Empty
+                                        aboveChecked = true;
+                                        lines.add(i, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                    else if(!(lines.get(i-1).substring(0, 6).equals("/*line"))){
+                                        aboveChecked = true;
+                                        lines.add(i, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                }
+
+                                //Check line 2 below
+                                if(aboveChecked){
+                                    if(lines.get(i+2).length() <= 6){
+                                        //Line Empty
+                                        lines.add(i+2, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                    else if(!(lines.get(i+2).substring(0, 6).equals("/*line"))){
+                                        lines.add(i+2, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                } else{
+                                    //Check line 1 below
+                                    if(lines.get(i+1).length() <= 6){
+                                        //Line Empty
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                    else if(!(lines.get(i+1).substring(0, 6).equals("/*line"))){
+                                        lines.add(i+1, "/*line"+addLineCount+"*/");
+                                        addLineCount++;
+                                    }
+                                }
+                            }
+                        }
+
+
+                        BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(tweeFile.getDirectoryPath()));
+                        for (String curLine : lines) {
+                            writer.write(curLine);
+                            writer.newLine();
+                        }
+                        writer.close();
+                    } catch(IOException e){
+                        LOGGER.log(Level.SEVERE, "Error in setupPassageTextLocations()", e);
+                    }
+                }
+            }
+        }
+    }
+
+
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
             //Create FileReader with read privileges
-            Reader r;
-            r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
-                public Reader run() throws IOException{
-                    return new FileReader(filePath);
-                }
-            });
 
-            BufferedReader bufferedReader = new BufferedReader(r);
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(new File(filePath)));
             String line;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -241,7 +410,6 @@ public final class ModLoader {
             }
 
             bufferedReader.close();
-            r.close();
 
             //Find Target Line
             int targetIndex = -1;
@@ -271,21 +439,13 @@ public final class ModLoader {
 
             //Place text
             if(targetIndex != -1){
-                targetIndex++;
                 for (int i = insertStrings.size()-1; i >= 0; i--) {
                     lines.add(targetIndex, insertStrings.get(i));
                 }
 
                 //Create FileWriter with write privileges
-                Writer w;
-                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
-                    public Writer run() throws IOException{
-                        return new FileWriter(filePath);
-                    }
-                });
-
                 //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(w);
+                BufferedWriter bufferedWriter = new BufferedWriter(getPrivilegedWriter(new File(filePath)));
                 for (String curLine : lines) {
                     bufferedWriter.write(curLine);
                     bufferedWriter.newLine();
@@ -296,7 +456,7 @@ public final class ModLoader {
             }
             
             return 0;
-        } catch (IOException|PrivilegedActionException|AccessControlException ex) {
+        } catch (IOException|AccessControlException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
@@ -306,10 +466,6 @@ public final class ModLoader {
     private static Reader getPrivilegedReader(File file){
         try{
             //Create FileReader with read privileges
-
-            //AccessControlContext acc = AccessController.getContext();
-            //acc.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
-            //AccessController.checkPermission(new FilePermission(file.getAbsolutePath(), "read"));
             Reader r;
             r = AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Reader>(){
                 public Reader run() throws IOException{
@@ -409,17 +565,6 @@ public final class ModLoader {
     }
 
 
-    @Deprecated
-    public static DolPassage getDolPassage(TweeFile twee, String passageName) throws InvalidPassageException{
-        for (DolPassage passage : twee.getPassages()) {
-            if(passage.getName().equals(passageName)){
-                return passage;
-            }
-        }
-        throw new InvalidPassageException("Error finding DolPassage (" + passageName + ") in TweeFile (" + twee.getName() + ").");
-    }
-
-
     public static DolPassage getDolPassage(String passageName) throws InvalidPassageException{
         for (DolSubfolder dolSubfolder : dolSubfolders) {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
@@ -469,10 +614,10 @@ public final class ModLoader {
     }
 
 
-    public static void addPassageText(ArrayList<String> message, DolPassage passage){
+    public static void addPassageText(ArrayList<String> message, DolPassage passage, int lineNumber){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
-        targets.add("/*newtext*/");
+        targets.add("/*line" + lineNumber + "*/");
         ArrayList<String> fail = new ArrayList<>();
         fail.add(null);
         fail.add("::");
@@ -493,7 +638,41 @@ public final class ModLoader {
             passage.setHasChanged();
             TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
             twee.setHasChanged();
-            getDolLocation(twee.getParent()).setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
+        } catch(InvalidLocationException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
+        } catch(InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+        }
+    }
+
+    public static void addPassageText(String message, DolPassage passage, int lineNumber){
+        ArrayList<String> targets = new ArrayList<>();
+        targets.add(":: "+passage.getName()+" [nobr]");
+        targets.add("/*line" + lineNumber + "*/");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add(null);
+        fail.add("::");
+
+        //Check Changed
+        if(passage.hasChanged()){
+            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");
+        }
+
+        ArrayList<String> tempList = new ArrayList<>();
+        tempList.add(message);
+        int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, tempList, fail, false);
+
+        //writeToTwee Error
+        if(succeeded > 0){
+            LOGGER.severe("An error occured during addPassageText (Error Code: "+succeeded+")");
+        } 
+        try{
+            //Set Changed
+            passage.setHasChanged();
+            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
+            twee.setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
             LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
         } catch(InvalidTweeFileException e){
@@ -714,6 +893,11 @@ public final class ModLoader {
         LOGGER.info("Setting up DOL Passages...");
         setupDolPassages();
         LOGGER.info("Finished setting up DOL Passages.");
+
+        //Setup PassageTextLocations
+        LOGGER.info("Placing text locations...");
+        setupPassageTextLocations();
+        LOGGER.info("Finished placing text locations.");
 
         //Load Mods
         LOGGER.info("Loading mods...");
