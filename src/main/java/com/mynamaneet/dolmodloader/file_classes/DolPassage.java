@@ -3,12 +3,12 @@ package com.mynamaneet.dolmodloader.file_classes;
 import java.io.File;
 
 public class DolPassage {
-    public DolPassage(File _tweeFile, String _name, String _parentDirectory){
+    public DolPassage(File _tweeFile, String _name, File _parentDirectory){
         this.file = _tweeFile;
         this.name = _name;
         this.parentDirectory = _parentDirectory;
     }
-    public DolPassage(File _tweeFile, String _name, String _parentDirectory, boolean _hasChanged){
+    public DolPassage(File _tweeFile, String _name, File _parentDirectory, boolean _hasChanged){
         this.file = _tweeFile;
         this.name = _name;
         this.parentDirectory = _parentDirectory;
@@ -18,7 +18,7 @@ public class DolPassage {
 
     private File file;
     private String name;
-    private String parentDirectory = "";
+    private File parentDirectory;
     private boolean hasChanged = false;
     private boolean overwriten = false;
 
@@ -29,7 +29,7 @@ public class DolPassage {
     public String getName(){
         return name;
     }
-    public String getParentDirectory(){
+    public File getParentDirectory(){
         return parentDirectory;
     }
     public boolean hasChanged(){

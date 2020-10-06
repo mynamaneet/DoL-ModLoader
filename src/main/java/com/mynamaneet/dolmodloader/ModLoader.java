@@ -205,7 +205,7 @@ public final class ModLoader {
                                 }
 
 
-                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getDirectoryPath(), new String(chars), dolLocation.getDirectoryPath().getAbsolutePath()));
+                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getDirectoryPath(), new String(chars), dolLocation.getDirectoryPath()));
                             }
                         }
                         reader.close();
@@ -622,7 +622,17 @@ public final class ModLoader {
 
         //Check Changed
         if(passage.hasChanged()){
-            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");    
+            LOGGER.info(String.format("This passage has been previously changed. ([Passage : %s])", passage.getName()));    
+        }
+        if(passage.isOverwriten()){
+            LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
+        }
+        try{
+            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
+                LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
+            }
+        } catch(InvalidLocationException | InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : $2%s], [Twee File : $3%s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
         }
         
         int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
@@ -634,7 +644,7 @@ public final class ModLoader {
         try{
             //Set Changed
             passage.setHasChanged();
-            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
+            TweeFile twee = getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName());
             twee.setHasChanged();
             getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
@@ -656,6 +666,16 @@ public final class ModLoader {
         if(passage.hasChanged()){
             LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");
         }
+        if(passage.isOverwriten()){
+            LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
+        }
+        try{
+            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
+                LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
+            }
+        } catch(InvalidLocationException | InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : $2%s], [Twee File : $3%s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+        }
 
         ArrayList<String> tempList = new ArrayList<>();
         tempList.add(message);
@@ -668,7 +688,7 @@ public final class ModLoader {
         try{
             //Set Changed
             passage.setHasChanged();
-            TweeFile twee = getTweeFile(getDolLocation(new File(passage.getParentDirectory())), passage.getTweeFile().getName());
+            TweeFile twee = getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName());
             twee.setHasChanged();
             getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
@@ -738,9 +758,16 @@ public final class ModLoader {
         if(passage.isOverwriten()){
             LOGGER.warning("This passage has been previously overwriten. (" + passage.getName() + ")");
         }
+        try{
+            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
+                LOGGER.warning(String.format("This Twee File has been previously overwriten. ([Twee File : %1$s], [Passage : %2$s])", passage.getTweeFile().getName(), passage.getName()));
+            }
+        } catch(InvalidLocationException | InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : $2%s], [Twee File : $3%s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+        }
 
         //Get passage's Twee File
-        File tweeLocation = new File(passage.getTweeFile().getAbsolutePath());
+        File tweeLocation = passage.getTweeFile();
         ArrayList<String> twee = readerToString(getPrivilegedReader(tweeLocation));
 
         //Search for passage in Twee File
@@ -788,6 +815,19 @@ public final class ModLoader {
                 passage.setOverwriten();
             }
         }
+    }
+
+
+    public static void overwriteTweeFile(TweeFile file, ArrayList<String> newText){
+        if(file.hasChanged()){
+            LOGGER.warning(String.format("This Twee File has been previously changed. ([Twee File : %s])", file.getName()));
+        }
+        if(file.isOverwriten()){
+            LOGGER.warning(String.format("This Twee File has been previously overwriten. ([Twee File : %s])", file.getName()));
+        }
+
+        file.setOverwriten();
+        writeNewFile(getPrivilegedWriter(file.getDirectoryPath()), newText);
     }
 
 

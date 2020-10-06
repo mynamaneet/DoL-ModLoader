@@ -10,7 +10,6 @@ Index:
 
 
 ModLoader:
-(*)- Add TweeFile full overwrite method.
 - Add Passage create option method.
 - Add Mod Debugging Mode.
 - Add way to track passage changes and delete those changes.
@@ -20,6 +19,7 @@ ModLoader:
 - Add Documentation.
 - Add way to create custom variables.
 (2)- Add helper functions.
+(*)- Add custom DoL file classes and methods.
 
 
 
@@ -34,6 +34,7 @@ specific npc dialog, exc.
 
 
 Completed:
+(0.1.22)- Add TweeFile full overwrite method.
 (0.1.22)- Edit Logger messages to have better details.
 (0.1.21)- Rework writeToTwee() to use the getPrivilegedReader and getPrivilegedWriter methods.
 (0.1.21)- Automate addPassageText() source locations.
