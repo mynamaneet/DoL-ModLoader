@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilePermission;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,7 +15,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.security.AccessControlContext;
 import java.security.AccessControlException;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -60,7 +58,7 @@ public final class ModLoader {
         try {
             return new File(ModLoader.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
         } catch (URISyntaxException|NullPointerException ex) {
-            LOGGER.log(Level.SEVERE, "Error occur in getRunningPath().", ex);
+            LOGGER.log(Level.SEVERE, "Error while trying to get the current running path.", ex);
         }
         return "FAILED";
     }
@@ -104,7 +102,7 @@ public final class ModLoader {
                 }
             }
         } catch(ClassNotFoundException|NoSuchMethodException|IllegalAccessException|InstantiationException|InvocationTargetException|IOException|NullPointerException ex){
-            LOGGER.log(Level.SEVERE, "Error occur during getMods()", ex);
+            LOGGER.log(Level.SEVERE, "Error while trying to initially get mods.", ex);
         }
     }
 
@@ -113,7 +111,7 @@ public final class ModLoader {
         try {
             getDolSubfolder(subfolderName).addLocation(location);
         } catch (InvalidSubfolderException ex) {
-            LOGGER.log(Level.SEVERE, "Error occured while adding location to subfolder", ex);
+            LOGGER.log(Level.SEVERE, String.format("Error while tring to link location to subfolder ([Location : %$1s], [Subfolder : %$2s])", location.getName(), subfolderName), ex);
         }
     }
 
@@ -123,7 +121,7 @@ public final class ModLoader {
             DolLocation location =  getDolLocation(locationName);
             location.addFile(file);
         } catch(InvalidLocationException ex){
-            LOGGER.log(Level.SEVERE, "Error occured while linking twee to location.");
+            LOGGER.log(Level.SEVERE, String.format("Error while tring to link twee to location ([Twee : %$1s], [Location : %$2s])", file.getName(), locationName), ex);
         }
     }
 
@@ -134,7 +132,7 @@ public final class ModLoader {
             TweeFile file = getTweeFile(location, tweeName);
             file.addPassage(passage);
         } catch(InvalidLocationException|InvalidTweeFileException ex){
-            LOGGER.log(Level.SEVERE, "Error occured while linking passage to twee file", ex);
+            LOGGER.log(Level.SEVERE, String.format("Error while tring to link Passage to Twee ([Passage : %$1s], [Twee : %$2s], [Location : ])", passage.getName(), tweeName, locationName), ex);
         }
     }
     
@@ -212,7 +210,7 @@ public final class ModLoader {
                         }
                         reader.close();
                     } catch(IOException e){
-                        LOGGER.log(Level.SEVERE, "Error in setupDolPassages()", e);
+                        LOGGER.log(Level.SEVERE, "Error while setting up Dol Passages", e);
                     }
                 }
             }
@@ -387,7 +385,7 @@ public final class ModLoader {
                         }
                         writer.close();
                     } catch(IOException e){
-                        LOGGER.log(Level.SEVERE, "Error in setupPassageTextLocations()", e);
+                        LOGGER.log(Level.SEVERE, "Error while setting up passage text locations.", e);
                     }
                 }
             }
@@ -452,12 +450,12 @@ public final class ModLoader {
                 }
                 bufferedWriter.close();
             } else{
-                LOGGER.severe("Failed to find targetString");
+                LOGGER.severe(String.format("Failed to find targetString ([Target String : %s])", targetString.get(targetDepth)));
             }
             
             return 0;
         } catch (IOException|AccessControlException ex) {
-            LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
+            LOGGER.log(Level.SEVERE, ("Error while writing to "+filePath), ex);
         }
         return 3;
     }
@@ -474,7 +472,7 @@ public final class ModLoader {
             });
             return r;
         } catch(PrivilegedActionException | AccessControlException e){
-            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+            LOGGER.log(Level.SEVERE, "Error while creating Privileged Reader", e);
         }
         
 
@@ -494,7 +492,7 @@ public final class ModLoader {
             });
             return w;
         } catch(PrivilegedActionException e){
-            LOGGER.log(Level.SEVERE, "Error occurred while getting Privileged Reader", e);
+            LOGGER.log(Level.SEVERE, "Error while creating Privileged Writer", e);
         }
 
         //If error occurred
@@ -511,7 +509,7 @@ public final class ModLoader {
             }
             bufferedWriter.close();
         } catch(IOException e){
-            LOGGER.log(Level.SEVERE, "Error occurred in writeNewFile", e);
+            LOGGER.log(Level.SEVERE, "Error while writing to new file.", e);
         }
     }
 
@@ -527,7 +525,7 @@ public final class ModLoader {
                 return subfolder;
             }
         }
-        throw new InvalidSubfolderException("Error finding DolSubfolder : " + name);
+        throw new InvalidSubfolderException(String.format("Error getting Dol Subfolder. ([Name : %s])", name));
     }
 
 
@@ -539,7 +537,7 @@ public final class ModLoader {
                 }
             }
         }
-        throw new InvalidLocationException("Error finding DolLocation (Name) : " + name);
+        throw new InvalidLocationException(String.format("Error getting Dol Location. ([Name : %s])", name));
     }
 
 
@@ -551,7 +549,7 @@ public final class ModLoader {
                 }
             }
         }
-        throw new InvalidLocationException("Error finding DolLocation (Path) : " + path);
+        throw new InvalidLocationException(String.format("Error getting Dol Location. ([Path : %s])", path.getAbsolutePath()));
     }
 
 
@@ -561,7 +559,7 @@ public final class ModLoader {
                 return file;
             }
         }
-        throw new InvalidTweeFileException("Error finding TweeFile (" + tweeName + ") in DolLocation (" + location.getName() +").");
+        throw new InvalidTweeFileException(String.format("Error getting Twee File. ([Twee Name : %1$s], [Location Name : %2$s])", tweeName, location.getName()));
     }
 
 
@@ -577,7 +575,7 @@ public final class ModLoader {
                 }                
             }
         }
-        throw new InvalidPassageException("Error finding DolPassage (" + passageName + ")");
+        throw new InvalidPassageException(String.format("Error getting Dol Passage. ([Name : %s])", passageName));
     }
 
 
@@ -604,7 +602,7 @@ public final class ModLoader {
             mods.add(mod);
             LOGGER.info("Added mod "+mod.getModName()+" @ " + mod.getModFolder().toString());
         } catch (URISyntaxException|InvalidModLocationException e){
-            LOGGER.log(Level.SEVERE, "Error while loading mod " + mod.getModName(), e);
+            LOGGER.log(Level.SEVERE, String.format("Error while loading mod. ([Mod Name : %1$s], [Mod Author : %2$s])", mod.getModName(), mod.getModAuthor()), e);
         }
     }
 
@@ -640,9 +638,9 @@ public final class ModLoader {
             twee.setHasChanged();
             getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
-            LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
+            LOGGER.log(Level.SEVERE, String.format("Error while logging DolLocation change. ([Passage Name : %s])", passage.getName()), e);
         } catch(InvalidTweeFileException e){
-            LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+            LOGGER.log(Level.SEVERE, String.format("Error while logging TweeFile change. ([Passage Name : %1$s], [Twee Name : %2$s])", passage.getName(), passage.getTweeFile().getName()), e);
         }
     }
 
@@ -674,9 +672,9 @@ public final class ModLoader {
             twee.setHasChanged();
             getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
         } catch(InvalidLocationException e){
-            LOGGER.log(Level.SEVERE, "An error occured while logging DolLocation change.", e);
+            LOGGER.log(Level.SEVERE, String.format("Error while logging DolLocation change. ([Passage Name : %s])", passage.getName()), e);
         } catch(InvalidTweeFileException e){
-            LOGGER.log(Level.SEVERE, "An error occured while logging TweeFile change.", e);
+            LOGGER.log(Level.SEVERE, String.format("Error while logging TweeFile change. ([Passage Name : %1$s], [Twee Name : %2$s])", passage.getName(), passage.getTweeFile().getName()), e);
         }
     }
 
@@ -708,7 +706,7 @@ public final class ModLoader {
                 return returnString;
             }
         } catch(PrivilegedActionException|AccessControlException|IOException e){
-            LOGGER.log(Level.SEVERE, String.format("Error while getting mod resource ([mod: \"%1$s\"], [fileName: \"%2$s\"])", mod.getModName(), fileName), e);
+            LOGGER.log(Level.SEVERE, String.format("Error while getting mod resource ([mod : %1$s], [fileName : %2$s])", mod.getModName(), fileName), e);
         }
 
         //Return null if an error occured
@@ -729,7 +727,7 @@ public final class ModLoader {
             bufferedReader.close();
             return lines;
         } catch(IOException e){
-            LOGGER.log(Level.SEVERE, "Error occured in readerToString", e);
+            LOGGER.log(Level.SEVERE, "Error while reading to string.", e);
         }
 
         return new ArrayList<>();
@@ -834,7 +832,7 @@ public final class ModLoader {
                 LOGGER.log(Level.INFO, String.format("foreach: %s", mod.getModName()));
             }
         } catch(IOException ex){
-            LOGGER.log(Level.SEVERE, "Error occur in FileHandler.", ex);
+            LOGGER.log(Level.SEVERE, "Error occured in FileHandler.", ex);
         }
 
 
