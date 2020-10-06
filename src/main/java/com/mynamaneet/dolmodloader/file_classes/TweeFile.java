@@ -25,7 +25,7 @@ public class TweeFile {
     private boolean overwriten = false;
 
 
-    public File getDirectoryPath(){
+    public File getPath(){
         return filePath;
     }
     public String getName(){

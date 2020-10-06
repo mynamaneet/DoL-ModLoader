@@ -17,6 +17,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.security.AccessControlException;
 import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import com.mynamaneet.dolmodloader.file_classes.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils.Null;
 
 public final class ModLoader {
     private ModLoader() {
@@ -187,7 +189,7 @@ public final class ModLoader {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
                 for (TweeFile tweeFile : dolLocation.getFiles()) {
                     try{
-                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getPath()));
                         String line;
                         while((line = reader.readLine()) != null){
                             if(line.length() > 1 && line.charAt(0) == ':' && line.charAt(1) == ':'){
@@ -205,7 +207,7 @@ public final class ModLoader {
                                 }
 
 
-                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getDirectoryPath(), new String(chars), dolLocation.getDirectoryPath()));
+                                linkPassageToTwee(dolLocation.getName(), tweeFile.getName(), new DolPassage(tweeFile.getPath(), new String(chars), dolLocation.getDirectoryPath()));
                             }
                         }
                         reader.close();
@@ -223,7 +225,7 @@ public final class ModLoader {
             for (DolLocation dolLocation : dolSubfolder.getLocations()) {
                 for (TweeFile tweeFile : dolLocation.getFiles()){
                         try{
-                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getDirectoryPath()));
+                        BufferedReader reader = new BufferedReader(getPrivilegedReader(tweeFile.getPath()));
                         ArrayList<String> lines = new ArrayList<>();
                         String line;
                         while((line = reader.readLine()) != null){
@@ -378,7 +380,7 @@ public final class ModLoader {
                         }
 
 
-                        BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(tweeFile.getDirectoryPath()));
+                        BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(tweeFile.getPath()));
                         for (String curLine : lines) {
                             writer.write(curLine);
                             writer.newLine();
@@ -427,7 +429,7 @@ public final class ModLoader {
                     if(curLine.equals(failReq.get(targetDepth))){
                         return 1;
                     }
-                }else{
+                }else if(failReq.get(targetDepth) != null){
                     CharSequence sequence = failReq.get(targetDepth);
                     if(curLine.contains(sequence)){
                         return 2;
@@ -454,7 +456,7 @@ public final class ModLoader {
             }
             
             return 0;
-        } catch (IOException|AccessControlException ex) {
+        } catch (IOException|AccessControlException|NullPointerException ex) {
             LOGGER.log(Level.SEVERE, ("Error while writing to "+filePath), ex);
         }
         return 3;
@@ -632,7 +634,7 @@ public final class ModLoader {
                 LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
             }
         } catch(InvalidLocationException | InvalidTweeFileException e){
-            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : $2%s], [Twee File : $3%s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
         }
         
         int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
@@ -664,7 +666,7 @@ public final class ModLoader {
 
         //Check Changed
         if(passage.hasChanged()){
-            LOGGER.info("This passage has been previously changed. (" + passage.getName() + ")");
+            LOGGER.info(String.format("This passage has been previously changed. ([Passage : %s])", passage.getName()));    
         }
         if(passage.isOverwriten()){
             LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
@@ -827,8 +829,130 @@ public final class ModLoader {
         }
 
         file.setOverwriten();
-        writeNewFile(getPrivilegedWriter(file.getDirectoryPath()), newText);
+        writeNewFile(getPrivilegedWriter(file.getPath()), newText);
     }
+
+
+    public static CustomSubfolder createCustomSubfolder(Mod mod, String name){
+        File directory = new File(getRunningPath()+"\\dol-files\\game\\"+name);
+        boolean exists = true;
+
+        try{
+            exists = AccessController.doPrivilegedWithCombiner(new PrivilegedAction<Boolean>(){
+                public Boolean run(){
+                    return directory.exists();
+                }
+            });
+        } catch(AccessControlException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while creating directory. ([Path : %1$s], [Mod : %2$s])", directory, mod.getModName()), e);
+        }
+
+        if(!exists){
+            try{
+                AccessController.doPrivilegedWithCombiner(new PrivilegedAction<Void>(){
+                    public Void run(){
+                        directory.mkdir();
+                        return null;
+                    }
+                });
+            } catch(AccessControlException e){
+                LOGGER.log(Level.SEVERE, String.format("Error while creating directory. ([Path : %1$s], [Mod : %2$s])", directory, mod.getModName()), e);
+            }
+        }
+        CustomSubfolder subfolder = new CustomSubfolder(directory, name, mod);
+
+        dolSubfolders.add(subfolder);
+
+        return subfolder;
+    }
+
+
+    public static CustomLocation createCustomLocation(Mod mod, String name, CustomSubfolder subfolder){
+        File directory = new File(subfolder.getDirectoryPath().getAbsolutePath()+"\\"+name);
+        boolean exists = true;
+
+        try{
+            exists = AccessController.doPrivilegedWithCombiner(new PrivilegedAction<Boolean>(){
+                public Boolean run(){
+                    return directory.exists();
+                }
+            });
+        } catch(AccessControlException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while creating directory. ([Path : %1$s], [Mod : %2$s])", directory, mod.getModName()), e);
+        }
+
+        if(!exists){
+            try{
+                AccessController.doPrivilegedWithCombiner(new PrivilegedAction<Void>(){
+                    public Void run(){
+                        directory.mkdir();
+                        return null;
+                    }
+                });
+            } catch(AccessControlException e){
+                LOGGER.log(Level.SEVERE, String.format("Error while creating directory. ([Path : %1$s], [Mod : %2$s])", directory, mod.getModName()), e);
+            }
+        }
+        CustomLocation location = new CustomLocation(directory, name, subfolder.getDirectoryPath().getAbsolutePath(), mod);
+
+        subfolder.addLocation(location);
+
+        return location;
+    }
+
+
+    public static CustomTweeFile createCustomTweeFile(Mod mod, String name, CustomLocation location){
+        File file = new File(location.getDirectoryPath().getAbsolutePath()+"\\"+name+".twee");
+        boolean exists = true;
+
+        try{
+            exists = AccessController.doPrivilegedWithCombiner(new PrivilegedAction<Boolean>(){
+                public Boolean run(){
+                    return file.exists();
+                }
+            });
+        } catch(AccessControlException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while creating directory. ([Path : %1$s], [Mod : %2$s])", file, mod.getModName()), e);
+        }
+
+        if(!exists){
+            try{
+                AccessController.doPrivilegedWithCombiner(new PrivilegedExceptionAction<Void>(){
+                    public Void run() throws IOException{
+                        file.createNewFile();
+                        return null;
+                    }
+                });
+            } catch(AccessControlException | PrivilegedActionException e){
+                LOGGER.log(Level.SEVERE, String.format("Error while creating file. ([Path : %1$s], [Mod : %2$s])", file, mod.getModName()), e);
+            }
+        }
+
+        CustomTweeFile tweeFile = new CustomTweeFile(file, name+".twee", location.getDirectoryPath().getAbsolutePath(), mod);
+
+        location.addFile(tweeFile);
+
+        return tweeFile;
+    }
+
+
+    public static CustomPassage createCustomPassage(Mod mod, String name, CustomTweeFile tweeFile){
+        ArrayList<String> lines = readerToString(getPrivilegedReader(tweeFile.getPath()));
+        lines.add(" ");
+        lines.add(" ");
+        lines.add(":: "+name+" [nobr]");
+        lines.add(" ");
+        lines.add("/*line1*/");
+
+        writeNewFile(getPrivilegedWriter(tweeFile.getPath()), lines);
+
+        CustomPassage passage = new CustomPassage(tweeFile.getPath(), name, new File(tweeFile.getParent()), mod);
+
+        tweeFile.addPassage(passage);
+
+        return passage;
+    }
+
 
 
     //End modApp methods
