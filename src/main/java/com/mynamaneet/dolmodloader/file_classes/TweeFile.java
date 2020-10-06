@@ -22,9 +22,10 @@ public class TweeFile {
     private String parent = "";
     private ArrayList<DolPassage> passages = new ArrayList<>();
     private boolean hasChanged = false;
+    private boolean overwriten = false;
 
 
-    public File getDirectoryPath(){
+    public File getPath(){
         return filePath;
     }
     public String getName(){
@@ -39,11 +40,17 @@ public class TweeFile {
     public boolean hasChanged(){
         return hasChanged;
     }
+    public boolean isOverwriten(){
+        return overwriten;
+    }
 
     public void addPassage(DolPassage pass){
         passages.add(pass);
     }
     public void setHasChanged(){
         hasChanged = true;
+    }
+    public void setOverwriten(){
+        overwriten = true;
     }
 }
