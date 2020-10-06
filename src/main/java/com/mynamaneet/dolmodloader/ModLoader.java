@@ -391,14 +391,8 @@ public final class ModLoader {
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
             //Create FileReader with read privileges
-            Reader r;
-            r = AccessController.doPrivileged(new PrivilegedExceptionAction<Reader>(){
-                public Reader run() throws IOException{
-                    return new FileReader(filePath);
-                }
-            });
 
-            BufferedReader bufferedReader = new BufferedReader(r);
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(new File(filePath)));
             String line;
             ArrayList<String> lines = new ArrayList<>();
 
@@ -408,7 +402,6 @@ public final class ModLoader {
             }
 
             bufferedReader.close();
-            r.close();
 
             //Find Target Line
             int targetIndex = -1;
@@ -438,21 +431,13 @@ public final class ModLoader {
 
             //Place text
             if(targetIndex != -1){
-                //targetIndex++;
                 for (int i = insertStrings.size()-1; i >= 0; i--) {
                     lines.add(targetIndex, insertStrings.get(i));
                 }
 
                 //Create FileWriter with write privileges
-                Writer w;
-                w = AccessController.doPrivileged(new PrivilegedExceptionAction<Writer>(){
-                    public Writer run() throws IOException{
-                        return new FileWriter(filePath);
-                    }
-                });
-
                 //Rewrite file
-                BufferedWriter bufferedWriter = new BufferedWriter(w);
+                BufferedWriter bufferedWriter = new BufferedWriter(getPrivilegedWriter(new File(filePath)));
                 for (String curLine : lines) {
                     bufferedWriter.write(curLine);
                     bufferedWriter.newLine();
@@ -463,7 +448,7 @@ public final class ModLoader {
             }
             
             return 0;
-        } catch (IOException|PrivilegedActionException|AccessControlException ex) {
+        } catch (IOException|AccessControlException ex) {
             LOGGER.log(Level.SEVERE, ("Error occured while writing to "+filePath), ex);
         }
         return 3;
