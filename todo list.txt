@@ -10,14 +10,16 @@ Index:
 
 
 ModLoader:
-- Add TweeFile full overwrite method.
+(*)- Add TweeFile full overwrite method.
 - Add Passage create option method.
 - Add Mod Debugging Mode.
 - Add way to track passage changes and delete those changes.
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
-- Add Documentation
+- Add Documentation.
+- Add way to create custom variables.
+(2)- Add helper functions.
 
 
 
@@ -26,6 +28,8 @@ ModLoader:
 
 More Info:
 (1)- May not be able to fix unless a new security system is implemented. Mod file access is still limited to everything in the mods folder.
+(2)- Functions that help mod developers have an easier time writing sugar cube. Such as a method that streamlines link creation, if statement creation, 
+specific npc dialog, exc.
 
 
 
