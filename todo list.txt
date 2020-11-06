@@ -10,9 +10,8 @@ Index:
 
 
 ModLoader:
-- Add Passage create option method.
 - Add Mod Debugging Mode.
-- Add way to track passage changes and delete those changes.
+(*)- Add way to track passage changes and delete those changes.
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
