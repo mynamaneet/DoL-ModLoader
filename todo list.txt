@@ -20,7 +20,7 @@ ModLoader:
 (2)- Add helper functions.
 - Have linking methods check for name conflicts.
 (#)- HTML file sometimes is still in use while it's trying to be renamed and copied.
-
+- Add comments for clarity
 
 
 
