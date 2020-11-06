@@ -614,7 +614,7 @@ public final class ModLoader {
     }
 
 
-    public static void addPassageText(ArrayList<String> message, DolPassage passage, int lineNumber){
+    public static void addPassageText(ArrayList<String> message, DolPassage passage, int lineNumber, Mod mod){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
         targets.add("/*line" + lineNumber + "*/");
@@ -635,6 +635,12 @@ public final class ModLoader {
             }
         } catch(InvalidLocationException | InvalidTweeFileException e){
             LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+        }
+
+        //Edit message to add Modded tag comment
+        for (int i = 0; i < message.size(); i++) {
+            passage.addModChange(mod);
+            message.set(i, ("/*" + mod.modName + passage.getModChange(mod) + "*/" + message.get(i)));
         }
         
         int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, message, fail, false);
