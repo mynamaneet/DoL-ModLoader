@@ -1102,7 +1102,7 @@ public final class ModLoader {
             synchronized(compile){
                 int failSafe = 0;
                 while(compile.isAlive() && failSafe <= 10){
-                    compile.wait(1000);
+                    compile.wait(3000);
                     failSafe++;
                 }
             }
@@ -1116,6 +1116,7 @@ public final class ModLoader {
                 LOGGER.log(Level.SEVERE, "Error occured while getting DOL version.", ex);
             }
             File html = new File(curRunningPath + "\\Degrees of Lewdity VERSION.html");
+            LOGGER.log(Level.WARNING, "html: "+html.exists()); //DEBUG
             File htmlDestination = new File(html.getParentFile().getParentFile().getParentFile().toPath() + "\\Degrees of Lewdity Modded.html");
             if(htmlDestination.exists()){
                 Files.delete(htmlDestination.toPath());
@@ -1123,7 +1124,7 @@ public final class ModLoader {
             if(!(html.renameTo(htmlDestination))){
                 throw new SecurityException("Couldn't move and rename HTML.", new Throwable());
             }
-        } catch(IOException|ProcessWarningException|SecurityException|PrivilegedActionException ex){
+        } catch(IOException|SecurityException|PrivilegedActionException|ProcessWarningException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
         } catch(InterruptedException ex){
             LOGGER.log(Level.SEVERE, "Error occured while creating HTML.", ex);
