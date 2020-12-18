@@ -267,116 +267,135 @@ public final class ModLoader {
                                 }
                             }
 
+                            //Check for text in line
+                            if(lines.get(i).length() > 0){
+                                foundCase = true;
+                            }
 
-                            //Check for <<set
-                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
-                                if(lines.get(i).substring(0+offset, 5+offset).equals("<<set")){
-                                    foundCase = true;
-                                    //Check if beginning set
-                                    if(curLineCount <= 2){
-                                        lines.add(i+1, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                        placedFirstAddLine = true;
-                                        dontAdd = true;
-                                    }
+                            //Check for ::
+                            if(lines.get(i).length() > 2+offset){
+                                if(lines.get(i).substring(0+offset, 2+offset).equals("::")){
+                                    foundCase = false;
                                 }
                             }
 
-                            //Check for <<if
-                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
-                                if(lines.get(i).substring(0+offset, 4+offset).equals("<<if")){
-                                    foundCase = true;
-                                }
-                            }
-
-                            //Check for <</if
-                            if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
-                                if(lines.get(i).substring(0+offset, 5+offset).equals("<</if")){
-                                    foundCase = true;
-                                }
-                            }
-
-                            //check for <<else
-                            if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
-                                if(lines.get(i).substring(0+offset, 6+offset).equals("<<else")){
-                                    foundCase = true;
-                                }
-                            }
-
-                            //check for <</else
-                            if(!foundLink && !foundCase && lines.get(i).length() > 7+offset){
-                                if(lines.get(i).substring(0+offset, 7+offset).equals("<</else")){
-                                    foundCase = true;
-                                }
-                            }
-
-                            //Check for <br>
-                            if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
-                                if(lines.get(i).substring(0+offset, 4+offset).equals("<br>")){
-                                    foundCase = true;
-                                }
-                            }
-
-                            
-                            
-                            //Check if no beginning set
-                            if(!foundCase && !placedFirstAddLine && curLineCount == 2){
-                                lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //Add line text
+                            if(foundCase){
+                                lines.set(i, ("/*line"+addLineCount+"*/"+lines.get(i)));
                                 addLineCount++;
                             }
 
-                            
-                            //check for <<link
-                            // if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
-                            //     if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
-                            //         foundLink = true;
+
+                            // Depricated
+
+                            // //Check for <<set
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                            //     if(lines.get(i).substring(0+offset, 5+offset).equals("<<set")){
+                            //         foundCase = true;
+                            //         //Check if beginning set
+                            //         if(curLineCount <= 2){
+                            //             lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //             placedFirstAddLine = true;
+                            //             dontAdd = true;
+                            //         }
                             //     }
                             // }
 
+                            // //Check for <<if
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                            //     if(lines.get(i).substring(0+offset, 4+offset).equals("<<if")){
+                            //         foundCase = true;
+                            //     }
+                            // }
+
+                            // //Check for <</if
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 5+offset){
+                            //     if(lines.get(i).substring(0+offset, 5+offset).equals("<</if")){
+                            //         foundCase = true;
+                            //     }
+                            // }
+
+                            // //check for <<else
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                            //     if(lines.get(i).substring(0+offset, 6+offset).equals("<<else")){
+                            //         foundCase = true;
+                            //     }
+                            // }
+
+                            // //check for <</else
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 7+offset){
+                            //     if(lines.get(i).substring(0+offset, 7+offset).equals("<</else")){
+                            //         foundCase = true;
+                            //     }
+                            // }
+
+                            // //Check for <br>
+                            // if(!foundLink && !foundCase && lines.get(i).length() > 4+offset){
+                            //     if(lines.get(i).substring(0+offset, 4+offset).equals("<br>")){
+                            //         foundCase = true;
+                            //     }
+                            // }
+
+                            
+                            
+                            // //Check if no beginning set
+                            // if(!foundCase && !placedFirstAddLine && curLineCount == 2){
+                            //     lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //     addLineCount++;
+                            // }
+
+                            
+                            // //check for <<link
+                            // // if(!foundLink && !foundCase && lines.get(i).length() > 6+offset){
+                            // //     if(lines.get(i).substring(0+offset, 6+offset).equals("<<link")){
+                            // //         foundLink = true;
+                            // //     }
+                            // // }
 
 
-                            //Add Lines
-                            if(foundCase && !dontAdd){
-                                boolean aboveChecked = false;
-                                //Check line above
-                                if(i != 0){
-                                    if(lines.get(i-1).length() < 6){
-                                        //Line Empty
-                                        aboveChecked = true;
-                                        lines.add(i, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                    else if(!(lines.get(i-1).substring(0, 6).equals("/*line"))){
-                                        aboveChecked = true;
-                                        lines.add(i, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                }
+                            // //Add Lines
+                            // if(foundCase && !dontAdd){
+                            //     boolean aboveChecked = false;
+                            //     //Check line above
+                            //     if(i != 0){
+                            //         if(lines.get(i-1).length() < 6){
+                            //             //Line Empty
+                            //             aboveChecked = true;
+                            //             lines.add(i, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                            //         else if(!(lines.get(i-1).substring(0, 6).equals("/*line"))){
+                            //             aboveChecked = true;
+                            //             lines.add(i, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                            //     }
 
-                                //Check line 2 below
-                                if(aboveChecked){
-                                    if(lines.get(i+2).length() <= 6){
-                                        //Line Empty
-                                        lines.add(i+2, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                    else if(!(lines.get(i+2).substring(0, 6).equals("/*line"))){
-                                        lines.add(i+2, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                } else{
-                                    //Check line 1 below
-                                    if(lines.get(i+1).length() <= 6){
-                                        //Line Empty
-                                        lines.add(i+1, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                    else if(!(lines.get(i+1).substring(0, 6).equals("/*line"))){
-                                        lines.add(i+1, "/*line"+addLineCount+"*/");
-                                        addLineCount++;
-                                    }
-                                }
-                            }
+                            //     //Check line 2 below
+                            //     if(aboveChecked){
+                            //         if(lines.get(i+2).length() <= 6){
+                            //             //Line Empty
+                            //             lines.add(i+2, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                            //         else if(!(lines.get(i+2).substring(0, 6).equals("/*line"))){
+                            //             lines.add(i+2, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                            //     } else{
+                            //         //Check line 1 below
+                            //         if(lines.get(i+1).length() <= 6){
+                            //             //Line Empty
+                            //             lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                            //         else if(!(lines.get(i+1).substring(0, 6).equals("/*line"))){
+                            //             lines.add(i+1, "/*line"+addLineCount+"*/");
+                            //             addLineCount++;
+                            //         }
+                                // }
+                            // }
                         }
 
 
@@ -416,23 +435,31 @@ public final class ModLoader {
             int targetDepth = 0;
             for (int i = 0; i < lines.size(); i++) {
                 String curLine = lines.get(i);
+                boolean curFound = false;
 
-                if(curLine.equals(targetString.get(targetDepth))){
-                    if(targetDepth == targetString.size()-1){
-                        targetIndex = i;
-                        break;
-                    }else{
-                        targetDepth++;
+                if(curLine.length() >= targetString.get(targetDepth).length()){
+                    if(curLine.substring(0, targetString.get(targetDepth).length()).equals(targetString.get(targetDepth))){
+                        curFound = true;
+                        if(targetDepth == targetString.size()-1){
+                            targetIndex = i;
+                            break;
+                        }else{
+                            targetDepth++;
+                        }
                     }
                 }
-                else if(ifFailReqChecksFullLine){
-                    if(curLine.equals(failReq.get(targetDepth))){
-                        return 1;
-                    }
-                }else if(failReq.get(targetDepth) != null){
-                    CharSequence sequence = failReq.get(targetDepth);
-                    if(curLine.contains(sequence)){
-                        return 2;
+
+
+                if(!curFound){
+                    if(ifFailReqChecksFullLine){
+                        if(curLine.equals(failReq.get(targetDepth))){
+                            return 1;
+                        }
+                    }else if(failReq.get(targetDepth) != null){
+                        CharSequence sequence = failReq.get(targetDepth);
+                        if(curLine.contains(sequence)){
+                            return 2;
+                        }
                     }
                 }
             }
@@ -662,6 +689,8 @@ public final class ModLoader {
         }
     }
 
+
+    @Deprecated
     public static void addPassageText(String message, DolPassage passage, int lineNumber){
         ArrayList<String> targets = new ArrayList<>();
         targets.add(":: "+passage.getName()+" [nobr]");
@@ -693,6 +722,211 @@ public final class ModLoader {
         if(succeeded > 0){
             LOGGER.severe("An error occured during addPassageText (Error Code: "+succeeded+")");
         } 
+        try{
+            //Set Changed
+            passage.setHasChanged();
+            TweeFile twee = getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName());
+            twee.setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
+        } catch(InvalidLocationException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while logging DolLocation change. ([Passage Name : %s])", passage.getName()), e);
+        } catch(InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while logging TweeFile change. ([Passage Name : %1$s], [Twee Name : %2$s])", passage.getName(), passage.getTweeFile().getName()), e);
+        }
+    }
+
+
+    public static void removePassageLine(DolPassage passage, int lineNumber){
+        ArrayList<String> targets = new ArrayList<>();
+        targets.add(":: "+passage.getName()+" [nobr]");
+        targets.add("/*line" + lineNumber + "*/");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add(null);
+        fail.add("::");
+
+        //Check Changed
+        if(passage.hasChanged()){
+            LOGGER.info(String.format("This passage has been previously changed. ([Passage : %s])", passage.getName()));    
+        }
+        if(passage.isOverwriten()){
+            LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
+        }
+        try{
+            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
+                LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
+            }
+        } catch(InvalidLocationException | InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+        }
+
+
+        //Remove line and rewrite twee
+        try{
+            //Create FileReader with read privileges
+
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(new File(passage.getTweeFile().getAbsolutePath())));
+            String line;
+            ArrayList<String> lines = new ArrayList<>();
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+
+            bufferedReader.close();
+
+            //Find Target Line
+            boolean failed = false;
+            int targetIndex = -1;
+            int targetDepth = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                String curLine = lines.get(i);
+                boolean curFound = false;
+
+                if(curLine.length() >= targets.get(targetDepth).length()){
+                    if(curLine.substring(0, targets.get(targetDepth).length()).equals(targets.get(targetDepth))){
+                        curFound = true;
+                        if(targetDepth == targets.size()-1){
+                            targetIndex = i;
+                            break;
+                        }else{
+                            targetDepth++;
+                        }
+                    }
+                }
+
+
+                if(!curFound){
+                    if(fail.get(targetDepth) != null){
+                        CharSequence sequence = fail.get(targetDepth);
+                        if(curLine.contains(sequence)){
+                            failed = true;
+                        }
+                    }
+                }
+            }
+
+            if(!failed){
+                lines.set(targetIndex, "/*line" + lineNumber + "*/");
+
+                //Create FileWriter with write privileges
+                //Rewrite file
+                BufferedWriter bufferedWriter = new BufferedWriter(getPrivilegedWriter(new File(passage.getTweeFile().getAbsolutePath())));
+                for (String curLine : lines) {
+                    bufferedWriter.write(curLine);
+                    bufferedWriter.newLine();
+                }
+                bufferedWriter.close();
+            }
+            else{
+                LOGGER.log(Level.WARNING, "removePassageLine FAILED");
+            }
+        } catch (IOException|AccessControlException|NullPointerException ex) {
+            LOGGER.log(Level.SEVERE, ("Error while writing to "+passage.getTweeFile().getAbsolutePath()), ex);
+        }
+        
+        try{
+            //Set Changed
+            passage.setHasChanged();
+            TweeFile twee = getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName());
+            twee.setHasChanged();
+            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
+        } catch(InvalidLocationException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while logging DolLocation change. ([Passage Name : %s])", passage.getName()), e);
+        } catch(InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while logging TweeFile change. ([Passage Name : %1$s], [Twee Name : %2$s])", passage.getName(), passage.getTweeFile().getName()), e);
+        }
+    }
+
+    public static void removePassageLine(DolPassage passage, int lineNumber, String modName){
+        ArrayList<String> targets = new ArrayList<>();
+        targets.add(":: "+passage.getName()+" [nobr]");
+        targets.add("/*" + modName + lineNumber + "*/");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add(null);
+        fail.add("::");
+
+        //Check Changed
+        if(passage.hasChanged()){
+            LOGGER.info(String.format("This passage has been previously changed. ([Passage : %s])", passage.getName()));    
+        }
+        if(passage.isOverwriten()){
+            LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
+        }
+        try{
+            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
+                LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
+            }
+        } catch(InvalidLocationException | InvalidTweeFileException e){
+            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
+        }
+
+
+        //Remove line and rewrite twee
+        try{
+            //Create FileReader with read privileges
+
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(new File(passage.getTweeFile().getAbsolutePath())));
+            String line;
+            ArrayList<String> lines = new ArrayList<>();
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+
+            bufferedReader.close();
+
+            //Find Target Line
+            boolean failed = false;
+            int targetIndex = -1;
+            int targetDepth = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                String curLine = lines.get(i);
+                boolean curFound = false;
+
+                if(curLine.length() >= targets.get(targetDepth).length()){
+                    if(curLine.substring(0, targets.get(targetDepth).length()).equals(targets.get(targetDepth))){
+                        curFound = true;
+                        if(targetDepth == targets.size()-1){
+                            targetIndex = i;
+                            break;
+                        }else{
+                            targetDepth++;
+                        }
+                    }
+                }
+
+
+                if(!curFound){
+                    if(fail.get(targetDepth) != null){
+                        CharSequence sequence = fail.get(targetDepth);
+                        if(curLine.contains(sequence)){
+                            failed = true;
+                        }
+                    }
+                }
+            }
+
+            if(!failed){
+                lines.set(targetIndex, "/*" + modName + lineNumber + "*/");
+
+                //Create FileWriter with write privileges
+                //Rewrite file
+                BufferedWriter bufferedWriter = new BufferedWriter(getPrivilegedWriter(new File(passage.getTweeFile().getAbsolutePath())));
+                for (String curLine : lines) {
+                    bufferedWriter.write(curLine);
+                    bufferedWriter.newLine();
+                }
+                bufferedWriter.close();
+            }
+            else{
+                LOGGER.log(Level.WARNING, "removePassageLine FAILED");
+            }
+        } catch (IOException|AccessControlException|NullPointerException ex) {
+            LOGGER.log(Level.SEVERE, ("Error while writing to "+passage.getTweeFile().getAbsolutePath()), ex);
+        }
+        
         try{
             //Set Changed
             passage.setHasChanged();
