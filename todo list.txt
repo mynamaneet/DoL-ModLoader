@@ -11,7 +11,6 @@ Index:
 
 ModLoader:
 - Add Mod Debugging Mode.
-(*)- Add way to track passage changes and delete those changes.
 (#)(?)(1)- Mods currently have access to all mod folders.
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
@@ -34,6 +33,7 @@ specific npc dialog, exc.
 
 
 Completed:
+(0.1.23)- Add a way to track passage changes and delete those changes.
 (0.1.22)- Add custom DoL file classes and methods.
 (0.1.22)- Add TweeFile full overwrite method.
 (0.1.22)- Edit Logger messages to have better details.
