@@ -15,7 +15,7 @@ ModLoader:
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
 - Add Documentation.
-- Add way to create custom variables.
+(*)- Add way to create custom variables.
 (2)- Add helper functions.
 - Have linking methods check for name conflicts.
 (#)- HTML file sometimes is still in use while it's trying to be renamed and copied.
