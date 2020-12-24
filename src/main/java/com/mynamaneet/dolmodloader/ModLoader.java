@@ -420,8 +420,6 @@ public final class ModLoader {
 
 
     private static void setupTweeVariables(){
-        //TODO
-
         File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
         String line;
         ArrayList<String> lines = new ArrayList<>();
