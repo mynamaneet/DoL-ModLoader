@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.mynamaneet.dolmodloader.enums.TweeVarType;
 import com.mynamaneet.dolmodloader.exceptions.*;
 import com.mynamaneet.dolmodloader.file_classes.*;
 
@@ -1281,6 +1282,118 @@ public final class ModLoader {
             }
         }
         return null;
+    }
+
+
+    //String varient
+    public static CustomTweeVariable createCustomTweeVariable(Mod mod, String name, String value){
+        //TODO
+        CustomTweeVariable tweeVar = new CustomTweeVariable(name, value, mod);
+        tweeVariables.add(tweeVar);
+
+        //Edit variables-start.twee
+        File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+
+        //Create FileReader with read privileges
+        try{
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(variableTweeLocation));
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+            bufferedReader.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while reading "+ variableTweeLocation.toString()), ex);
+        }
+
+        lines.add("<<set $"+name+" to \""+value+"\">>");
+        
+
+        //Create FileWriter with write privileges
+        try{
+            BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(variableTweeLocation));
+            for (String curLine : lines) {
+                writer.write(curLine);
+                writer.newLine();
+            }
+            writer.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while writing "+ variableTweeLocation.toString()), ex);
+        }
+
+
+        //Edit variables-versionUpdate.twee
+        variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-versionUpdate.twee");
+        ArrayList<String> targetStrings = new ArrayList<>();
+        targetStrings.add("/**/");
+        ArrayList<String> insertStrings = new ArrayList<>();
+        insertStrings.add("<<if $"+name+" is undefined>>");
+        insertStrings.add("\t<<set $"+name+" to \""+value+"\">>");
+        insertStrings.add("<</if>>");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add("asdagfsadf");
+        writeToTwee(variableTweeLocation.toString(), targetStrings, insertStrings, fail, false);
+
+        return tweeVar;
+    }
+
+
+    //Integer varient
+    public static CustomTweeVariable createCustomTweeVariable(Mod mod, String name, int value){
+        //TODO
+        CustomTweeVariable tweeVar = new CustomTweeVariable(name, value, mod);
+        tweeVariables.add(tweeVar);
+
+        //Edit variables-start.twee
+        File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+
+        //Create FileReader with read privileges
+        try{
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(variableTweeLocation));
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+            bufferedReader.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while reading "+ variableTweeLocation.toString()), ex);
+        }
+
+        lines.add("<<set $"+name+" to "+value+">>");
+        
+
+        //Create FileWriter with write privileges
+        try{
+            BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(variableTweeLocation));
+            for (String curLine : lines) {
+                writer.write(curLine);
+                writer.newLine();
+            }
+            writer.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while writing "+ variableTweeLocation.toString()), ex);
+        }
+
+
+        //Edit variables-versionUpdate.twee
+        variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-versionUpdate.twee");
+        ArrayList<String> targetStrings = new ArrayList<>();
+        targetStrings.add("/**/");
+        ArrayList<String> insertStrings = new ArrayList<>();
+        insertStrings.add("<<if $"+name+" is undefined>>");
+        insertStrings.add("\t<<set $"+name+" to "+value+">>");
+        insertStrings.add("<</if>>");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add("asdagfsadf");
+        writeToTwee(variableTweeLocation.toString(), targetStrings, insertStrings, fail, false);
+
+        return tweeVar;
     }
 
 
