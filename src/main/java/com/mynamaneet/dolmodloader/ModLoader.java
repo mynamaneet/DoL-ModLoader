@@ -457,7 +457,7 @@ public final class ModLoader {
             //check for <<set
             if(curLine.length() > 5+offset){
                 if(curLine.substring(0+offset, 5+offset).equals("<<set")){
-                    int curChar = 7+offset; //should be $
+                    int curChar = 6+offset; //should be $
                     ArrayList<Character> varName = new ArrayList<>(); //Stores twee variable name
                     //get twee variable name and store to varName
                     if(curLine.charAt(curChar) == '$'){
@@ -494,13 +494,13 @@ public final class ModLoader {
                                     //Check if gotten value
                                     if(!varValue.isEmpty()){
                                         //Add variable to tweeVariables
-                                        char[] chars = {};
-                                        for (Character c : varName) {
-                                            chars[chars.length] = c;
+                                        char[] chars = new char[varName.size()];
+                                        for (int j = 0; j < chars.length; j++) {
+                                            chars[j] = varName.get(j);
                                         }
-                                        char[] chars2 = {};
-                                        for(Character c : varValue){
-                                            chars2[chars2.length] = c;
+                                        char[] chars2 = new char[varValue.size()];
+                                        for (int j = 0; j < chars2.length; j++) {
+                                            chars2[j] = varValue.get(j);
                                         }
                                         tweeVariables.add(new TweeVariable(new String(chars), new String(chars2)));
                                     }
@@ -515,18 +515,19 @@ public final class ModLoader {
                                         } else{
                                             varValue.add(curLine.charAt(curChar));
                                         }
+                                        curChar++;
                                     }
 
                                     //Check if gotten value
                                     if(!varValue.isEmpty()){
                                         //Add variable to tweeVariables
-                                        char[] chars = {};
-                                        for (Character c : varName) {
-                                            chars[chars.length] = c;
+                                        char[] chars = new char[varName.size()];
+                                        for (int j = 0; j < chars.length; j++) {
+                                            chars[j] = varName.get(j);
                                         }
-                                        char[] chars2 = {};
-                                        for(Character c : varValue){
-                                            chars2[chars2.length] = c;
+                                        char[] chars2 = new char[varValue.size()];
+                                        for (int j = 0; j < chars2.length; j++) {
+                                            chars2[j] = varValue.get(j);
                                         }
                                         tweeVariables.add(new TweeVariable(new String(chars), Integer.parseInt(new String(chars2))));
                                     }
