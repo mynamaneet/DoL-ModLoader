@@ -15,7 +15,7 @@ ModLoader:
 - Go over ModLoader methods and switch non-main functions to throwing exceptions instead of handling them.
 - Add getResource() method that allows mods to grab images.
 - Add Documentation.
-- Add way to create custom variables.
+- Add Array Constructor for TweeVariable.
 (2)- Add helper functions.
 - Have linking methods check for name conflicts.
 (#)- HTML file sometimes is still in use while it's trying to be renamed and copied.
@@ -33,6 +33,8 @@ specific npc dialog, exc.
 
 
 Completed:
+(0.1.24)- Add way to create custom twine variables.
+(0.1.24)- Store all twine variables.
 (0.1.23)- Add a way to track passage changes and delete those changes.
 (0.1.22)- Add custom DoL file classes and methods.
 (0.1.22)- Add TweeFile full overwrite method.

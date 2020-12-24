@@ -21,13 +21,17 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.mynamaneet.dolmodloader.enums.TweeVarType;
 import com.mynamaneet.dolmodloader.exceptions.*;
 import com.mynamaneet.dolmodloader.file_classes.*;
 
@@ -39,9 +43,11 @@ public final class ModLoader {
     private ModLoader() {
     }
 
+
     private static final Logger LOGGER = Logger.getLogger(ModLoader.class.getName());
     private static ArrayList<Mod> mods = new ArrayList<>();
     private static ArrayList<DolSubfolder> dolSubfolders = new ArrayList<>();
+    private static ArrayList<TweeVariable> tweeVariables = new ArrayList<>();
 
     /*
     File Organization:
@@ -414,6 +420,126 @@ public final class ModLoader {
     }
 
 
+    private static void setupTweeVariables(){
+        File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+
+        //Create FileReader with read privileges
+        try{
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(variableTweeLocation));
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+            bufferedReader.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while reading "+ variableTweeLocation.toString()), ex);
+        }
+
+        //Check each line
+        for (int i = 0; i < lines.size()-1; i++){
+            String curLine = lines.get(i);
+            //offset is the amount of indents to account for.
+            int offset = 0;
+            if(curLine.length() > 0){
+                for (int j = 0; j < curLine.length(); j++) {
+                    if(curLine.charAt(j) == ' ' || curLine.charAt(j) == '\t'){
+                        offset++;
+                    } else{
+                        break;
+                    }
+                }
+            }
+
+            //check for <<set
+            if(curLine.length() > 5+offset){
+                if(curLine.substring(0+offset, 5+offset).equals("<<set")){
+                    int curChar = 6+offset; //should be $
+                    ArrayList<Character> varName = new ArrayList<>(); //Stores twee variable name
+                    //get twee variable name and store to varName
+                    if(curLine.charAt(curChar) == '$'){
+                        curChar++;
+                        while (curChar < curLine.length()) {
+                            if(curLine.charAt(curChar) != ' '){
+                                varName.add(curLine.charAt(curChar));
+                            } else{
+                                break;
+                            }
+                            curChar++;
+                        }
+                        //If found a name
+                        if(varName.size() > 1 && curLine.charAt(curChar) == ' '){
+                            curChar++;
+
+                            //If 'to' is in '<<set'
+                            if(curLine.charAt(curChar) == 't' && curLine.charAt(curChar+1) == 'o'){
+                                curChar = curChar + 3; //Should be at the value
+
+                                //Check if varType is an integer or string
+                                if(curLine.charAt(curChar) == '"'){ //Is String
+                                    ArrayList<Character> varValue = new ArrayList<>();
+                                    curChar++;
+                                    while (curChar < curLine.length()){
+                                        if(curLine.charAt(curChar) == '"'){
+                                            break;
+                                        } else{
+                                            varValue.add(curLine.charAt(curChar));
+                                        }
+                                        curChar++;
+                                    }
+
+                                    //Check if gotten value
+                                    if(!varValue.isEmpty()){
+                                        //Add variable to tweeVariables
+                                        char[] chars = new char[varName.size()];
+                                        for (int j = 0; j < chars.length; j++) {
+                                            chars[j] = varName.get(j);
+                                        }
+                                        char[] chars2 = new char[varValue.size()];
+                                        for (int j = 0; j < chars2.length; j++) {
+                                            chars2[j] = varValue.get(j);
+                                        }
+                                        tweeVariables.add(new TweeVariable(new String(chars), new String(chars2)));
+                                    }
+                                } else if(Character.isDigit(curLine.charAt(curChar))){ //Is Integer
+                                    ArrayList<Character> varValue = new ArrayList<>();
+                                    varValue.add(curLine.charAt(curChar));
+                                    curChar++;
+
+                                    while (curChar < curLine.length()){
+                                        if(!Character.isDigit(curLine.charAt(curChar))){
+                                            break;
+                                        } else{
+                                            varValue.add(curLine.charAt(curChar));
+                                        }
+                                        curChar++;
+                                    }
+
+                                    //Check if gotten value
+                                    if(!varValue.isEmpty()){
+                                        //Add variable to tweeVariables
+                                        char[] chars = new char[varName.size()];
+                                        for (int j = 0; j < chars.length; j++) {
+                                            chars[j] = varName.get(j);
+                                        }
+                                        char[] chars2 = new char[varValue.size()];
+                                        for (int j = 0; j < chars2.length; j++) {
+                                            chars2[j] = varValue.get(j);
+                                        }
+                                        tweeVariables.add(new TweeVariable(new String(chars), Integer.parseInt(new String(chars2))));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     //0 = no errors
     private static int writeToTwee(String filePath, ArrayList<String> targetString, ArrayList<String> insertStrings, ArrayList<String> failReq, boolean ifFailReqChecksFullLine){
         try {
@@ -689,51 +815,6 @@ public final class ModLoader {
         }
     }
 
-
-    @Deprecated
-    public static void addPassageText(String message, DolPassage passage, int lineNumber){
-        ArrayList<String> targets = new ArrayList<>();
-        targets.add(":: "+passage.getName()+" [nobr]");
-        targets.add("/*line" + lineNumber + "*/");
-        ArrayList<String> fail = new ArrayList<>();
-        fail.add(null);
-        fail.add("::");
-
-        //Check Changed
-        if(passage.hasChanged()){
-            LOGGER.info(String.format("This passage has been previously changed. ([Passage : %s])", passage.getName()));    
-        }
-        if(passage.isOverwriten()){
-            LOGGER.warning(String.format("This passage has been previously overwriten. ([Passage : %s])", passage.getName()));
-        }
-        try{
-            if(getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()).isOverwriten()){
-                LOGGER.warning(String.format("This Twee File has been previously overwriten ([Passage : %1$s], [Location : %2$s], [Twee File : %3$s])", passage.getName(), getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName()));
-            }
-        } catch(InvalidLocationException | InvalidTweeFileException e){
-            LOGGER.log(Level.SEVERE, String.format("Error while attempting to check overwriten status. ([Passage : %1$s], [Location : $2%s], [Twee File : $3%s])", passage.getName(), passage.getParentDirectory().getName(), passage.getTweeFile().getName()), e);
-        }
-
-        ArrayList<String> tempList = new ArrayList<>();
-        tempList.add(message);
-        int succeeded = writeToTwee(passage.getTweeFile().getAbsolutePath(), targets, tempList, fail, false);
-
-        //writeToTwee Error
-        if(succeeded > 0){
-            LOGGER.severe("An error occured during addPassageText (Error Code: "+succeeded+")");
-        } 
-        try{
-            //Set Changed
-            passage.setHasChanged();
-            TweeFile twee = getTweeFile(getDolLocation(passage.getParentDirectory()), passage.getTweeFile().getName());
-            twee.setHasChanged();
-            getDolLocation(new File(twee.getParent()).getName()).setHasChanged();
-        } catch(InvalidLocationException e){
-            LOGGER.log(Level.SEVERE, String.format("Error while logging DolLocation change. ([Passage Name : %s])", passage.getName()), e);
-        } catch(InvalidTweeFileException e){
-            LOGGER.log(Level.SEVERE, String.format("Error while logging TweeFile change. ([Passage Name : %1$s], [Twee Name : %2$s])", passage.getName(), passage.getTweeFile().getName()), e);
-        }
-    }
 
 
     public static void removePassageLine(DolPassage passage, int lineNumber){
@@ -1194,6 +1275,128 @@ public final class ModLoader {
     }
 
 
+    public static TweeVariable getTweeVariable(String name){
+        for (TweeVariable twee : tweeVariables) {
+            if(twee.getName().equals(name)){
+                return twee;
+            }
+        }
+        return null;
+    }
+
+
+    //String varient
+    public static CustomTweeVariable createCustomTweeVariable(Mod mod, String name, String value){
+        //TODO
+        CustomTweeVariable tweeVar = new CustomTweeVariable(name, value, mod);
+        tweeVariables.add(tweeVar);
+
+        //Edit variables-start.twee
+        File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+
+        //Create FileReader with read privileges
+        try{
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(variableTweeLocation));
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+            bufferedReader.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while reading "+ variableTweeLocation.toString()), ex);
+        }
+
+        lines.add("<<set $"+name+" to \""+value+"\">>");
+        
+
+        //Create FileWriter with write privileges
+        try{
+            BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(variableTweeLocation));
+            for (String curLine : lines) {
+                writer.write(curLine);
+                writer.newLine();
+            }
+            writer.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while writing "+ variableTweeLocation.toString()), ex);
+        }
+
+
+        //Edit variables-versionUpdate.twee
+        variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-versionUpdate.twee");
+        ArrayList<String> targetStrings = new ArrayList<>();
+        targetStrings.add("/**/");
+        ArrayList<String> insertStrings = new ArrayList<>();
+        insertStrings.add("<<if $"+name+" is undefined>>");
+        insertStrings.add("\t<<set $"+name+" to \""+value+"\">>");
+        insertStrings.add("<</if>>");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add("asdagfsadf");
+        writeToTwee(variableTweeLocation.toString(), targetStrings, insertStrings, fail, false);
+
+        return tweeVar;
+    }
+
+
+    //Integer varient
+    public static CustomTweeVariable createCustomTweeVariable(Mod mod, String name, int value){
+        //TODO
+        CustomTweeVariable tweeVar = new CustomTweeVariable(name, value, mod);
+        tweeVariables.add(tweeVar);
+
+        //Edit variables-start.twee
+        File variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-start.twee");
+        String line;
+        ArrayList<String> lines = new ArrayList<>();
+
+        //Create FileReader with read privileges
+        try{
+            BufferedReader bufferedReader = new BufferedReader(getPrivilegedReader(variableTweeLocation));
+
+            //Record all lines
+            while((line=bufferedReader.readLine()) != null){
+                lines.add(line);
+            }
+            bufferedReader.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while reading "+ variableTweeLocation.toString()), ex);
+        }
+
+        lines.add("<<set $"+name+" to "+value+">>");
+        
+
+        //Create FileWriter with write privileges
+        try{
+            BufferedWriter writer = new BufferedWriter(getPrivilegedWriter(variableTweeLocation));
+            for (String curLine : lines) {
+                writer.write(curLine);
+                writer.newLine();
+            }
+            writer.close();
+        } catch(IOException ex){
+            LOGGER.log(Level.SEVERE, ("Error while writing "+ variableTweeLocation.toString()), ex);
+        }
+
+
+        //Edit variables-versionUpdate.twee
+        variableTweeLocation = new File(getRunningPath()+"\\dol-files\\game\\04-Variables\\variables-versionUpdate.twee");
+        ArrayList<String> targetStrings = new ArrayList<>();
+        targetStrings.add("/**/");
+        ArrayList<String> insertStrings = new ArrayList<>();
+        insertStrings.add("<<if $"+name+" is undefined>>");
+        insertStrings.add("\t<<set $"+name+" to "+value+">>");
+        insertStrings.add("<</if>>");
+        ArrayList<String> fail = new ArrayList<>();
+        fail.add("asdagfsadf");
+        writeToTwee(variableTweeLocation.toString(), targetStrings, insertStrings, fail, false);
+
+        return tweeVar;
+    }
+
+
 
     //End modApp methods
 
@@ -1300,6 +1503,11 @@ public final class ModLoader {
         LOGGER.info("Placing text locations...");
         setupPassageTextLocations();
         LOGGER.info("Finished placing text locations.");
+
+        //Setup TweeVariables
+        LOGGER.info("Setting up Vanilla Twee Variables");
+        setupTweeVariables();
+        LOGGER.info("Finished setting up Vanilla Twee Variables.");
 
         //Load Mods
         LOGGER.info("Loading mods...");
