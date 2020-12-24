@@ -1274,6 +1274,17 @@ public final class ModLoader {
     }
 
 
+    public static TweeVariable getTweeVariable(String name){
+        for (TweeVariable twee : tweeVariables) {
+            if(twee.getName().equals(name)){
+                return twee;
+            }
+        }
+
+        return null;
+    }
+
+
 
     //End modApp methods
 
