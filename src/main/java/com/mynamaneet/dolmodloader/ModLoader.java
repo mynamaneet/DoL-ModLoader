@@ -39,6 +39,7 @@ public final class ModLoader {
     private ModLoader() {
     }
 
+
     private static final Logger LOGGER = Logger.getLogger(ModLoader.class.getName());
     private static ArrayList<Mod> mods = new ArrayList<>();
     private static ArrayList<DolSubfolder> dolSubfolders = new ArrayList<>();
